@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login | Mason</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+    </style>
+</head>
+<body class="flex items-center justify-center min-h-screen bg-gray-100">
+<div class="w-full max-w-md p-8 space-y-6 bg-white border">
+    <!-- Logo -->
+    <div class="flex justify-center">
+        <img src="../public/Stonecutter_JE2_BE1.png" alt="Mason Logo" class="w-40 h-40">
+    </div>
+
+    <!-- Heading -->
+    <h1 class="text-center text-2xl font-semibold text-gray-800">Login to continue</h1>
+
+    <!-- Login Form -->
+    <form class="space-y-4" method="post">
+        <div>
+            <label class="text-sm text-gray-500 flex flex-col gap-1">
+                Username or Email Address
+                <input type="text" name="username" required
+                       class="w-full px-2 py-2 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-orange-950">
+            </label>
+        </div>
+        <div>
+            <label class="text-sm text-gray-500 flex flex-col gap-1">
+                Password
+                <input type="password" name="password" required
+                       class="w-full px-2 py-2 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-orange-950">
+            </label>
+        </div>
+        <div>
+            <input type="submit" value="Log In"
+                   class="w-full px-4 py-2 font-semibold text-white bg-orange-900 rounded cursor-pointer hover:bg-[#7C2D12] focus:outline-none focus:ring-1 focus:ring-orange-950">
+        </div>
+    </form>
+
+    <!-- Links -->
+    <div class="text-center text-sm text-gray-500">
+        <a href="#" class="hover:underline text-blue-600">Lost your password?</a>
+    </div>
+</div>
+
+</body>
+</html>
