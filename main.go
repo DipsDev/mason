@@ -1,50 +1,47 @@
 package main
 
 import (
-	"database/sql"
-
-	_ "github.com/go-sql-driver/mysql"
-
+	"github.com/DipsDev/mason/controllers"
 	"github.com/joho/godotenv"
 	"html/template"
 	"log"
 	"net/http"
-	"os"
 	"path/filepath"
 )
 
-func main() {
-	envErr := godotenv.Load()
-	if envErr != nil {
-		log.Fatal("Error loading .env file")
-		return
+func loadTemplates() *template.Template {
+	dirs := []string{
+		"templates/*.html",
+		"templates/frames/*.html",
 	}
-	sqlDsn, ok := os.LookupEnv("MASON_DATABASE_DSN")
-	if !ok {
-		log.Fatal("[Mason] Couldn't connect to database: Missing MASON_DATABASE_DSN.")
+	var files []string
+	for _, dir := range dirs {
+		ff, err := filepath.Glob(dir)
+		if err != nil {
+			panic(err)
+		}
+		files = append(files, ff...)
+	}
+	t, err := template.ParseFiles(files...)
+	if err != nil {
+		panic(err)
+	}
+	return t
+}
+
+func main() {
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatal("[Mason] Error loading .env file")
 		return
 	}
 
-	_, err := sql.Open("mysql", sqlDsn)
-	if err != nil {
-		log.Fatal("[mason] Couldn't connect to database: Is it active?", err)
-		return
-	}
+	templates := loadTemplates()
 
 	http.Handle("/public/", http.StripPrefix("/public/", http.FileServer(http.Dir("public"))))
+	http.HandleFunc("GET /login", controllers.HandleGETLogin(templates))
+	http.HandleFunc("POST /login", controllers.HandlePOSTLogin(templates))
 
-	http.HandleFunc("/login", func(w http.ResponseWriter, r *http.Request) {
-		tmpl, tmpl_err := template.ParseFiles(filepath.Join("templates", "login_page.html"))
-		if tmpl_err != nil {
-			log.Println(tmpl_err)
-			return
-		}
-		err := tmpl.Execute(w, "no data needed")
-		if err != nil {
-			return
-		}
-
-	})
 	log.Println("Server is running on http://localhost:8080")
 	http.ListenAndServe(":8080", nil)
 }

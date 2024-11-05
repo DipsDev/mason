@@ -1,4 +1,4 @@
-module mason
+module github.com/DipsDev/mason
 
 go 1.22
 
