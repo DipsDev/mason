@@ -25,7 +25,8 @@ func ValidateCsrf(val string, r *http.Request) bool {
 }
 
 type LoginProps struct {
-	CsrfToken string
+	CsrfToken    string
+	ErrorMessage string
 }
 
 func HandleGETLogin(t *template.Template) func(w http.ResponseWriter, r *http.Request) {
@@ -34,7 +35,7 @@ func HandleGETLogin(t *template.Template) func(w http.ResponseWriter, r *http.Re
 		expiration := time.Now().Add(365 * 24 * time.Hour)
 		csrfCookie := http.Cookie{Name: "csrf-token", Value: csrf, Expires: expiration, SameSite: 1, HttpOnly: true}
 		http.SetCookie(w, &csrfCookie)
-		t.ExecuteTemplate(w, "login", &LoginProps{CsrfToken: csrf})
+		t.ExecuteTemplate(w, "login", &LoginProps{CsrfToken: csrf, ErrorMessage: ""})
 	}
 }
 
@@ -48,6 +49,6 @@ func HandlePOSTLogin(t *template.Template) func(w http.ResponseWriter, r *http.R
 			w.WriteHeader(http.StatusForbidden)
 			return
 		}
-		w.Write([]byte("ok"))
+		t.ExecuteTemplate(w, "login", &LoginProps{ErrorMessage: "Username or password incorrect", CsrfToken: r.Form.Get("csrf-token")})
 	}
 }
