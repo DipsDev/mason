@@ -31,7 +31,7 @@ func main() {
 		return
 	}
 
-	http.Handle("/public/", http.FileServer(http.Dir("public")))
+	http.Handle("/public/", http.StripPrefix("/public/", http.FileServer(http.Dir("public"))))
 
 	http.HandleFunc("/login", func(w http.ResponseWriter, r *http.Request) {
 		tmpl, tmpl_err := template.ParseFiles(filepath.Join("templates", "login_page.html"))
