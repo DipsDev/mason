@@ -2,10 +2,13 @@ package main
 
 import (
 	"github.com/DipsDev/mason/controllers"
+	"github.com/DipsDev/mason/db"
+	_ "github.com/go-sql-driver/mysql"
 	"github.com/joho/godotenv"
 	"html/template"
 	"log"
 	"net/http"
+	"os"
 	"path/filepath"
 )
 
@@ -37,10 +40,15 @@ func main() {
 	}
 
 	templates := loadTemplates()
+	db.InitDatabase(os.Getenv("MASON_DATABASE_DSN"))
+	defer db.Close()
 
 	http.Handle("/public/", http.StripPrefix("/public/", http.FileServer(http.Dir("public"))))
-	http.HandleFunc("GET /login", controllers.HandleGETLogin(templates))
-	http.HandleFunc("POST /login", controllers.HandlePOSTLogin(templates))
+
+	// Auth
+	http.HandleFunc("/login", controllers.ShowLogin(templates))
+	http.HandleFunc("POST /login", controllers.CreateLogin(templates))
+	http.HandleFunc("/logout", controllers.HandleLogout(templates))
 
 	log.Println("Server is running on http://localhost:8080")
 	http.ListenAndServe(":8080", nil)
