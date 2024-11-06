@@ -7,7 +7,7 @@ import (
 
 var DB *sql.DB
 
-func InitDatabase(dsn string) {
+func Init(dsn string) {
 	var err error
 	DB, err = sql.Open("mysql", dsn)
 	if err != nil {

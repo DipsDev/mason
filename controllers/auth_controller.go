@@ -4,8 +4,8 @@ import (
 	"crypto/rand"
 	"encoding/hex"
 	"github.com/DipsDev/mason/db"
+	"github.com/DipsDev/mason/templates/pages"
 	"golang.org/x/crypto/bcrypt"
-	"html/template"
 	"net/http"
 	"time"
 )
@@ -73,84 +73,81 @@ type LoginProps struct {
 	ErrorMessage string
 }
 
-func ShowLogin(t *template.Template) func(w http.ResponseWriter, r *http.Request) {
-	return func(w http.ResponseWriter, r *http.Request) {
-		csrf := generateCsrf()
-		http.SetCookie(w, createCookie("csrf-token", csrf))
-		t.ExecuteTemplate(w, "login", &LoginProps{CsrfToken: csrf, ErrorMessage: ""})
-	}
+func ShowLogin(w http.ResponseWriter, r *http.Request) {
+	csrf := generateCsrf()
+	http.SetCookie(w, createCookie("csrf-token", csrf))
+	pages.Login(csrf, "").Render(r.Context(), w)
+
 }
 
-func CreateLogin(t *template.Template) func(w http.ResponseWriter, r *http.Request) {
-	return func(w http.ResponseWriter, r *http.Request) {
-		err := r.ParseForm()
-		if err != nil {
-			return
-		}
-		if r.Form.Get("csrf-token") == "" || !validateCsrf(r.Form.Get("csrf-token"), r) {
-			w.WriteHeader(http.StatusForbidden)
-			return
-		}
-		email := r.Form.Get("email")
-		password := r.Form.Get("password")
-		if email == "" || password == "" {
-			w.WriteHeader(http.StatusBadRequest)
-			return
-		}
+func CreateLogin(w http.ResponseWriter, r *http.Request) {
 
-		stmtOut, err := db.DB.Prepare("SELECT password, id, email FROM users WHERE email = ?")
-		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
-			return
-		}
-
-		var passwordSQL, idSQL, usernameSQL string
-		err = stmtOut.QueryRow(email).Scan(&passwordSQL, &idSQL, &usernameSQL)
-		if err != nil {
-			w.WriteHeader(http.StatusUnauthorized)
-			t.ExecuteTemplate(w, "login", &LoginProps{ErrorMessage: "Incorrect username or password", CsrfToken: r.Form.Get("csrf-token")})
-			return
-		}
-
-		err = bcrypt.CompareHashAndPassword([]byte(passwordSQL), []byte(password))
-		if err != nil {
-			w.WriteHeader(http.StatusUnauthorized)
-			t.ExecuteTemplate(w, "login", &LoginProps{ErrorMessage: "Incorrect username or password", CsrfToken: r.Form.Get("csrf-token")})
-			return
-		}
-
-		// create a session cookie
-		sess := createSession(&User{id: idSQL, email: email})
-		cookie := createCookie("MASONSESSION", sess.id)
-		http.SetCookie(w, cookie)
-
-		// Redirect user to dashboard
-
+	err := r.ParseForm()
+	if err != nil {
+		return
 	}
+	if r.Form.Get("csrf-token") == "" || !validateCsrf(r.Form.Get("csrf-token"), r) {
+		w.WriteHeader(http.StatusForbidden)
+		return
+	}
+	email := r.Form.Get("email")
+	password := r.Form.Get("password")
+	if email == "" || password == "" {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	stmtOut, err := db.DB.Prepare("SELECT password, id, email FROM users WHERE email = ?")
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	var passwordSQL, idSQL, usernameSQL string
+	err = stmtOut.QueryRow(email).Scan(&passwordSQL, &idSQL, &usernameSQL)
+	if err != nil {
+		w.WriteHeader(http.StatusUnauthorized)
+		pages.Login(r.Form.Get("csrf-token"), "Incorrect username or password").Render(r.Context(), w)
+		return
+	}
+
+	err = bcrypt.CompareHashAndPassword([]byte(passwordSQL), []byte(password))
+	if err != nil {
+		w.WriteHeader(http.StatusUnauthorized)
+		pages.Login(r.Form.Get("csrf-token"), "Incorrect username or password").Render(r.Context(), w)
+		return
+	}
+
+	// create a session cookie
+	sess := createSession(&User{id: idSQL, email: email})
+	cookie := createCookie("MASONSESSION", sess.id)
+	http.SetCookie(w, cookie)
+
+	// Redirect user to dashboard
+
 }
 
-func HandleLogout(t *template.Template) func(w http.ResponseWriter, r *http.Request) {
-	return func(w http.ResponseWriter, r *http.Request) {
-		c, err := r.Cookie("MASONSESSION")
-		if err != nil {
-			if err == http.ErrNoCookie {
-				w.WriteHeader(http.StatusUnauthorized)
-				return
-			}
-			w.WriteHeader(http.StatusBadRequest)
+func HandleLogout(w http.ResponseWriter, r *http.Request) {
+
+	c, err := r.Cookie("MASONSESSION")
+	if err != nil {
+		if err == http.ErrNoCookie {
+			w.WriteHeader(http.StatusUnauthorized)
 			return
 		}
-
-		sessToken := c.Value
-		delete(sessions, sessToken)
-
-		http.SetCookie(w, &http.Cookie{
-			Name:    "MASONSESSION",
-			Value:   "",
-			Expires: time.Now(),
-		})
-
-		http.Redirect(w, r, "/", http.StatusOK)
-
+		w.WriteHeader(http.StatusBadRequest)
+		return
 	}
+
+	sessToken := c.Value
+	delete(sessions, sessToken)
+
+	http.SetCookie(w, &http.Cookie{
+		Name:    "MASONSESSION",
+		Value:   "",
+		Expires: time.Now(),
+	})
+
+	http.Redirect(w, r, "/", http.StatusOK)
+
 }
