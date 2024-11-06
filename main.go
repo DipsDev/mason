@@ -25,14 +25,14 @@ func main() {
 	router.Handle("/public/", http.StripPrefix("/public/", http.FileServer(http.Dir("public"))))
 
 	// Auth
-	router.HandleFunc("/login", controllers.ShowLogin)
-	router.HandleFunc("POST /login", controllers.CreateLogin)
-	router.HandleFunc("/logout", controllers.HandleLogout)
+	router.HandleFunc("/login/", controllers.ShowLogin)
+	router.HandleFunc("POST /login/", controllers.CreateLogin)
+	router.HandleFunc("/logout/", controllers.HandleLogout)
 
 	// Panel
-	router.HandleFunc("/panel", controllers.ShowPanelFrame)
-	router.HandleFunc("/panel/overview", controllers.ShowPanelOverview)
-	router.HandleFunc("/panel/settings", controllers.ShowPanelSettings)
+	router.HandleFunc("/panel/", controllers.ShowPanelFrame)
+	router.HandleFunc("/panel/overview/", controllers.ShowPanelOverview)
+	router.HandleFunc("/panel/settings/", controllers.ShowPanelSettings)
 
 	server := &http.Server{Addr: ":8080", Handler: router}
 

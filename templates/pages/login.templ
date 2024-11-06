@@ -8,7 +8,7 @@ templ Login(csrf string, error_message string) {
     <div class="flex justify-center">
         <img src="../../public/mason_logo.svg" alt="Mason Logo" class="w-[250px] my-10">
     </div>
-    <div class="w-full max-w-md p-8 space-y-6 bg-white border">
+    <div class="max-w-md p-8 space-y-6 bg-white border w-[375px]">
         <!-- Heading -->
         <h1 class="text-center text-2xl font-semibold text-gray-800">Login to continue</h1>
 
@@ -29,21 +29,20 @@ templ Login(csrf string, error_message string) {
                            class="w-full px-2 py-2 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-orange-950">
                 </label>
             </div>
-            <input type="hidden" name="csrf-token" value="{ csrf }" />
+            <input type="hidden" name="csrf-token" value={ csrf } />
             <div>
                 <input type="submit" value="Login"
-                       class="w-full px-4 py-2 text-white bg-orange-900 rounded cursor-pointer hover:bg-[#7C2D12] focus:outline-none focus:ring-1 focus:ring-orange-950">
+                       class="w-full px-4 py-2  text-sm text-white bg-orange-900 rounded cursor-pointer hover:bg-[#7C2D12] focus:outline-none focus:ring-1 focus:ring-orange-950">
             </div>
         </form>
 
         <!-- Errors -->
         <p class="text-red-600 text-sm">{ error_message }</p>
 
-        <!-- Links -->
 
     </div>
     <div class="text-center text-sm mt-10">
-        <a href="#" class="hover:underline text-blue-600">Lost your password?</a>
+        <a href="#" class="hover:underline text-gray-950 font-semibold">Lost your password?</a>
     </div>
 
     </body>

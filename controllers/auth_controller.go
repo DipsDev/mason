@@ -3,6 +3,7 @@ package controllers
 import (
 	"crypto/rand"
 	"encoding/hex"
+	"errors"
 	"github.com/DipsDev/mason/db"
 	"github.com/DipsDev/mason/templates/pages"
 	"golang.org/x/crypto/bcrypt"
@@ -124,6 +125,7 @@ func CreateLogin(w http.ResponseWriter, r *http.Request) {
 	http.SetCookie(w, cookie)
 
 	// Redirect user to dashboard
+	http.Redirect(w, r, "/panel", http.StatusFound)
 
 }
 
@@ -131,7 +133,7 @@ func HandleLogout(w http.ResponseWriter, r *http.Request) {
 
 	c, err := r.Cookie("MASONSESSION")
 	if err != nil {
-		if err == http.ErrNoCookie {
+		if errors.Is(err, http.ErrNoCookie) {
 			w.WriteHeader(http.StatusUnauthorized)
 			return
 		}
@@ -148,6 +150,6 @@ func HandleLogout(w http.ResponseWriter, r *http.Request) {
 		Expires: time.Now(),
 	})
 
-	http.Redirect(w, r, "/", http.StatusOK)
+	http.Redirect(w, r, "/", http.StatusFound)
 
 }
