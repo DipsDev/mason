@@ -4,22 +4,16 @@ import (
 	"crypto/rand"
 	"encoding/hex"
 	"errors"
-	"github.com/DipsDev/mason/db"
+	"github.com/DipsDev/mason/common"
 	"github.com/DipsDev/mason/templates/pages"
 	"golang.org/x/crypto/bcrypt"
 	"net/http"
 	"time"
 )
 
-type User struct {
-	id    string
-	email string
-	// add more as project grows
-}
-
 type Session struct {
 	id     string
-	user   *User
+	user   *common.User
 	expiry time.Time
 	// add more as project grows
 }
@@ -30,7 +24,7 @@ func (s *Session) Expired() bool {
 
 var sessions = map[string]*Session{}
 
-func createSession(user *User) *Session {
+func createSession(user *common.User) *Session {
 	bytes := make([]byte, 24)
 	if _, err := rand.Read(bytes); err != nil {
 		panic(err)
@@ -98,7 +92,7 @@ func CreateLogin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	stmtOut, err := db.DB.Prepare("SELECT password, id, email FROM users WHERE email = ?")
+	stmtOut, err := common.DB.Prepare("SELECT password, id, email FROM users WHERE email = ?")
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
@@ -120,7 +114,7 @@ func CreateLogin(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// create a session cookie
-	sess := createSession(&User{id: idSQL, email: email})
+	sess := createSession(&common.User{Id: idSQL, Email: email})
 	cookie := createCookie("MASONSESSION", sess.id)
 	http.SetCookie(w, cookie)
 

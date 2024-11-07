@@ -1,8 +1,8 @@
 package main
 
 import (
+	"github.com/DipsDev/mason/common"
 	"github.com/DipsDev/mason/controllers"
-	"github.com/DipsDev/mason/db"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/joho/godotenv"
 	"log"
@@ -17,8 +17,8 @@ func main() {
 		return
 	}
 
-	db.Init(os.Getenv("MASON_DATABASE_DSN"))
-	defer db.Close()
+	common.Init(os.Getenv("MASON_DATABASE_DSN"))
+	defer common.Close()
 
 	router := http.NewServeMux()
 
@@ -33,6 +33,8 @@ func main() {
 	router.HandleFunc("/panel/", controllers.ShowPanelFrame)
 	router.HandleFunc("/panel/overview/", controllers.ShowPanelOverview)
 	router.HandleFunc("/panel/settings/", controllers.ShowPanelSettings)
+	router.HandleFunc("/panel/users/", controllers.ShowPanelUsers)
+	router.HandleFunc("/panel/pages/", controllers.ShowPanelPages)
 
 	server := &http.Server{Addr: ":8080", Handler: router}
 
