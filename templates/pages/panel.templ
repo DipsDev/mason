@@ -18,11 +18,15 @@ templ sidebarLink(name string) {
 
 templ panelSidebar() {
     <aside class="w-[160px] bg-stone-800 text-white min-h-screen flex flex-col">
-        <div class="flex flex-row items-center justify-start bg-stone-800 px-1 py-2 mt-1 gap-2">
-            <img src="../../public/mason_logo.svg" alt="Mason Logo" class="w-[50px] brightness-0 invert">
-            <a href="#" class="text-xs mb-1 hover:underline"> yoautomation</a>
+        <div class="flex flex-row items-center justify-start bg-stone-800">
+            <div class="h-[32px] w-full flex flex-row items-center justify-center hover:bg-stone-900 px-2 cursor-pointer">
+                <img src="../../public/mason_logo.svg" alt="Mason Logo" class="brightness-0 invert">
+            </div>
+            <div class="h-[32px] w-full flex flex-row items-center justify-center hover:bg-stone-900 px-2 group cursor-pointer">
+                <a href="#" class="text-xs group-hover:underline"> yoautomation</a>
+            </div>
         </div>
-        <nav class="flex flex-col items-start justify-center my-4">
+        <nav class="flex flex-col items-start justify-center mt-2">
             @sidebarLink("overview")
             @sidebarLink("pages")
             @sidebarLink("users")
