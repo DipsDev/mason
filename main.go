@@ -33,8 +33,11 @@ func main() {
 	router.HandleFunc("/panel/", controllers.ShowPanelFrame)
 	router.HandleFunc("/panel/overview/", controllers.ShowPanelOverview)
 	router.HandleFunc("/panel/settings/", controllers.ShowPanelSettings)
-	router.HandleFunc("/panel/users/", controllers.ShowPanelUsers)
 	router.HandleFunc("/panel/pages/", controllers.ShowPanelPages)
+
+	// users
+	router.HandleFunc("/panel/users/", controllers.ShowUsers)
+	router.HandleFunc("/panel/users/new", controllers.CreateUsers)
 
 	server := &http.Server{Addr: ":8080", Handler: router}
 

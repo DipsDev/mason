@@ -92,14 +92,14 @@ func CreateLogin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	stmtOut, err := common.DB.Prepare("SELECT password, id, email FROM users WHERE email = ?")
+	stmtOut, err := common.DB.Prepare("SELECT password, id, email, username FROM users WHERE email = ? OR username = ?")
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
-	var passwordSQL, idSQL, usernameSQL string
-	err = stmtOut.QueryRow(email).Scan(&passwordSQL, &idSQL, &usernameSQL)
+	var passwordSQL, idSQL, emailSQL, usernameSQL string
+	err = stmtOut.QueryRow(email, email).Scan(&passwordSQL, &idSQL, &emailSQL, &usernameSQL)
 	if err != nil {
 		w.WriteHeader(http.StatusUnauthorized)
 		pages.Login(r.Form.Get("csrf-token"), "Incorrect username or password").Render(r.Context(), w)
@@ -114,7 +114,7 @@ func CreateLogin(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// create a session cookie
-	sess := createSession(&common.User{Id: idSQL, Email: email})
+	sess := createSession(&common.User{Id: idSQL, Email: email, Username: usernameSQL})
 	cookie := createCookie("MASONSESSION", sess.id)
 	http.SetCookie(w, cookie)
 

@@ -7,8 +7,12 @@ import (
 	"net/http"
 )
 
-func ShowPanelUsers(w http.ResponseWriter, r *http.Request) {
-	stmtOut, err := common.DB.Prepare("SELECT id, email FROM users")
+func CreateUsers(w http.ResponseWriter, r *http.Request) {
+	pages.Panel("Add New User", components.CreateUsers()).Render(r.Context(), w)
+}
+
+func ShowUsers(w http.ResponseWriter, r *http.Request) {
+	stmtOut, err := common.DB.Prepare("SELECT id, email, username FROM users")
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
@@ -24,7 +28,7 @@ func ShowPanelUsers(w http.ResponseWriter, r *http.Request) {
 
 	for rows.Next() {
 		var cur common.User
-		err = rows.Scan(&cur.Id, &cur.Email)
+		err = rows.Scan(&cur.Id, &cur.Email, &cur.Username)
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			return
@@ -33,5 +37,4 @@ func ShowPanelUsers(w http.ResponseWriter, r *http.Request) {
 		users = append(users, cur)
 	}
 	pages.Panel("Users", components.ShowUsers(users, len(users))).Render(r.Context(), w)
-
 }

@@ -5,15 +5,23 @@ import (
 "fmt"
 )
 
+templ quickInput(name string, inpType string) {
+    <label class="capitalize flex flex-row items-center justify-between gap-7 w-full">
+        { name }
+        <input class="border border-black rounded px-2 py-1 text-sm w-[300px]" type={ inpType } name={ name } required />
+    </label>
+
+}
+
 templ ShowUsers(users []common.User, users_count int) {
 
-        <main id="dashboard-data" class="space-y-6 bg-gray-100 p-6">
-          <div>
+        <main id="dashboard-data" class="bg-gray-100 p-6">
             <div class="flex flex-row justify-between items-center">
               <div>
                 <span class="mb-3 flex flex-row items-center gap-3">
                     <h1 class="text-2xl">Users</h1>
-                    <input type="button" value="Add New User" class="bg-white text-blue-600 rounded hover:bg-gray-100 cursor-pointer  border-blue-600 border text-sm px-3 py-[0.3rem]" />
+                    <input hx-select="#dashboard-data" hx-push-url="true" hx-get="/panel/users/new" hx-swap="outerHTML" hx-target="#dashboard-data"
+                     type="button" value="Add New User" class="bg-white text-blue-600 rounded hover:bg-gray-100 cursor-pointer  border-blue-600 border text-sm px-3 py-[0.3rem]" />
                 </span>
                 <p class="text-sm mb-3">All users registered in the system.</p>
               </div>
@@ -25,19 +33,37 @@ templ ShowUsers(users []common.User, users_count int) {
             <p class="text-xs text-gray-900 text-right">{ fmt.Sprintf("%d", users_count) } items</p>
             <table class="my-3 w-full border border-gray-300 text-sm">
               <tr class="border-b border-[#C4C5C7] bg-white">
-                <th class="p-2 py-2 text-left font-normal">ID</th>
-                <th class="p-2 py-2 text-left font-normal">Email</th>
+                <th class="p-2 text-left font-normal">ID</th>
+                <th class="p-2 text-left font-normal">Username</th>
+                <th class="p-2 text-left font-normal">Email</th>
               </tr>
               for _, user := range users {
                 <tr class="even:bg-[#F6F7F7] odd:bg-white border-b border-[#C4C5C7]">
-                    <td class="p-2 py-2 ">{user.Id}</td>
-                    <td class="p-2 py-2">{user.Email}</td>
+                    <td class="p-2">{user.Id}</td>
+                    <td class="p-2">{user.Username}</td>
+                    <td class="p-2">{user.Email}</td>
                 </tr>
               }
             </table>
             <p class="text-xs text-gray-900 text-right">{ fmt.Sprintf("%d", users_count) } items</p>
-          </div>
         </main>
 
 
+}
+
+templ CreateUsers() {
+        <main id="dashboard-data" class="bg-gray-100 p-6">
+            <div class="flex flex-row justify-between items-center">
+              <div>
+                <h1 class="text-2xl mb-3 gap-3">Add New User</h1>
+                <p class="text-sm mb-3">Create a brand new user and add them to this site</p>
+              </div>
+            </div>
+            <form class="mt-7 flex flex-col items-start justify-center w-2/4 max-w-[500px] gap-6">
+                @quickInput("username", "text")
+                @quickInput("email", "email")
+                @quickInput("password", "password")
+                <input type="submit" value="Add User" class="bg-white self-end text-blue-600 rounded hover:bg-gray-100 cursor-pointer  border-blue-600 border text-sm px-3 py-[0.3rem]">
+            </form>
+        </main>
 }

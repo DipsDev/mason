@@ -37,7 +37,7 @@ templ panelSidebar() {
 }
 
 templ EmptyPanel() {
-    <main id="dashboard-data" class="p-6 space-y-6"></main>
+    <main id="dashboard-data" class="p-6"></main>
 }
 
 templ Panel(title string, view templ.Component) {
@@ -68,7 +68,7 @@ templ Panel(title string, view templ.Component) {
 }
 
 templ Settings() {
-    <main id="dashboard-data" class="p-6 space-y-6">
+    <main id="dashboard-data" class="p-6">
             <!-- Overview Cards -->
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-10 ml-10">
                  <div class="bg-white border border-gray-300">
@@ -136,8 +136,7 @@ templ Overview() {
 }
 
 templ Pages() {
-        <main id="dashboard-data" class="space-y-6 bg-gray-100 p-6">
-          <div>
+        <main id="dashboard-data" class="bg-gray-100 p-6">
             <div class="flex flex-row justify-between items-center">
               <div>
                 <span class="mb-3 flex flex-row items-center gap-3">
@@ -165,6 +164,5 @@ templ Pages() {
               </tr>
             </table>
             <p class="text-xs text-gray-900 text-right">2 items</p>
-          </div>
         </main>
 }
