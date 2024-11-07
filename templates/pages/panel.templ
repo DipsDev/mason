@@ -2,7 +2,6 @@ package pages
 
 import (
     "github.com/DipsDev/mason/templates"
-    "github.com/DipsDev/mason/common"
     "fmt"
 
 )
@@ -20,7 +19,9 @@ templ panelSidebar() {
     <aside class="w-[160px] bg-stone-800 text-white min-h-screen flex flex-col">
         <div class="flex flex-row items-center justify-start bg-stone-800">
             <div class="h-[32px] w-full flex flex-row items-center justify-center hover:bg-stone-900 px-2 cursor-pointer">
+            <a href="https://github.com/DipsDev/mason" target="_blank">
                 <img src="../../public/mason_logo.svg" alt="Mason Logo" class="brightness-0 invert">
+                </a>
             </div>
             <div class="h-[32px] w-full flex flex-row items-center justify-center hover:bg-stone-900 px-2 group cursor-pointer">
                 <a href="#" class="text-xs group-hover:underline"> yoautomation</a>
@@ -166,28 +167,4 @@ templ Pages() {
             <p class="text-xs text-gray-900 text-right">2 items</p>
           </div>
         </main>
-}
-
-templ Users(users []common.User) {
-        <main id="dashboard-data" class="p-6 space-y-6 bg-gray-100">
-                    <div>
-                      <h1 class="text-3xl">Users</h1>
-                      <p>All users registered in MASON.</p>
-                      <h2 class="text-2xl mt-10">User List </h2>
-                      <table class="w-full border border-gray-300 mt-3">
-                        <tr class="border-b border-[#C4C5C7] bg-white">
-                          <th class="text-left font-normal p-2 py-3">ID</th>
-                          <th class="text-left font-normal p-2 py-3">Email</th>
-                        </tr>
-                        for _, user := range users {
-                            <tr class="even:bg-[#F6F7F7] odd:bg-white border-b border-[#C4C5C7]">
-                               <td class="p-2 py-3">{user.Id}</td>
-                               <td class="p-2 py-3">{user.Email}</td>
-                            </tr>
-                        }
-                    </table>
-                    </div>
-        </main>
-
-
 }
