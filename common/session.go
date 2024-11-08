@@ -123,3 +123,27 @@ func GetSession(ctx context.Context) (*Session, bool) {
 	}
 	return nil, false
 }
+
+// GetSessionUser fetches the user from the session data context.
+// it returns the data in the database, at oppose to GetSession, that returns the data stored in the session - which is not reliable.
+// it returns nil if the user is not logged in.
+func GetSessionUser(ctx context.Context) *User {
+	sess, ok := GetSession(ctx)
+	if !ok {
+		return nil
+	}
+	stmtOut, err := DB.Prepare("SELECT id, username, email, role FROM users WHERE id = ?")
+	if err != nil {
+		return nil
+	}
+	defer stmtOut.Close()
+
+	var user User
+
+	err = stmtOut.QueryRow(sess.UserId).Scan(&user.Id, &user.Username, &user.Email, &user.Role)
+	if err != nil {
+		return nil
+	}
+	return &user
+
+}

@@ -1,19 +1,78 @@
 package controllers
 
 import (
+	"fmt"
 	"github.com/DipsDev/mason/common"
 	"github.com/DipsDev/mason/templates/components"
 	"github.com/DipsDev/mason/templates/pages"
+	"golang.org/x/crypto/bcrypt"
 	"net/http"
+	"strconv"
 )
+
+type createFormData struct {
+	username string
+	email    string
+	password string
+	roleCode string
+}
 
 func CreateUsers(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "" || r.Method == "GET" {
 		pages.Panel("Add New User", components.CreateUsers()).Render(r.Context(), w)
 		return
 	}
-	sess, _ := common.GetSession(r.Context())
+	user := common.GetSessionUser(r.Context())
+	fmt.Println(user, common.Administrator)
+	if user == nil || user.Role != common.Administrator {
+		http.Redirect(w, r, "/panel", http.StatusFound)
+		return
+	}
+	formData := createFormData{}
+	if err := r.ParseForm(); err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
 
+	// load form data
+	formData.roleCode = r.Form.Get("role")
+	formData.username = r.Form.Get("username")
+	formData.password = r.Form.Get("password")
+	formData.email = r.Form.Get("email")
+
+	if formData.username == "" || formData.password == "" || formData.email == "" || formData.roleCode == "" {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	role, err := strconv.Atoi(formData.roleCode)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	if role >= int(common.END) || role < 0 {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	stmtOut, err := common.DB.Prepare("INSERT INTO users (username, email, password, role) VALUES (?, ?, ?, ?)")
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	defer stmtOut.Close()
+
+	hashedPass, err := bcrypt.GenerateFromPassword([]byte(formData.password), bcrypt.DefaultCost)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	_, err = stmtOut.Exec(formData.username, formData.email, hashedPass, role)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	http.Redirect(w, r, "/panel/users", http.StatusFound)
 }
 
 func ShowUsers(w http.ResponseWriter, r *http.Request) {

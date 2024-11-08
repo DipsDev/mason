@@ -6,6 +6,7 @@ const (
 	Viewer userRole = iota
 	Editor
 	Administrator
+	END
 )
 
 func TranslateRole(role userRole) string {
@@ -16,8 +17,9 @@ func TranslateRole(role userRole) string {
 		return "Editor"
 	case Administrator:
 		return "Administrator"
+	default:
+		panic("unhandled default case")
 	}
-	return "should not happen"
 }
 
 type User struct {

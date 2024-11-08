@@ -61,7 +61,7 @@ templ CreateUsers() {
                 <p class="text-sm mb-3">Create a brand new user and add them to this site</p>
               </div>
             </div>
-            <form class="mt-7 flex flex-col items-start justify-center w-2/4 max-w-[500px] gap-6">
+            <form method="post" action="/panel/users/new" class="mt-7 flex flex-col items-start justify-center w-2/4 max-w-[500px] gap-6">
                 @quickInput("username", "text")
                 @quickInput("email", "email")
                 @quickInput("password", "password")

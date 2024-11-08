@@ -63,6 +63,7 @@ func CreateLogin(w http.ResponseWriter, r *http.Request) {
 	}
 
 	stmtOut, err := common.DB.Prepare("SELECT password, id, email, username FROM users WHERE email = ? OR username = ?")
+	defer stmtOut.Close()
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
