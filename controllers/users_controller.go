@@ -15,7 +15,7 @@ func CreateUsers(w http.ResponseWriter, r *http.Request) {
 }
 
 func ShowUsers(w http.ResponseWriter, r *http.Request) {
-	stmtOut, err := common.DB.Prepare("SELECT id, email, username FROM users")
+	stmtOut, err := common.DB.Prepare("SELECT id, email, username, role FROM users")
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
@@ -31,7 +31,7 @@ func ShowUsers(w http.ResponseWriter, r *http.Request) {
 
 	for rows.Next() {
 		var cur common.User
-		err = rows.Scan(&cur.Id, &cur.Email, &cur.Username)
+		err = rows.Scan(&cur.Id, &cur.Email, &cur.Username, &cur.Role)
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			return

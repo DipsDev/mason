@@ -36,12 +36,14 @@ templ ShowUsers(users []common.User, users_count int) {
                 <th class="p-2 text-left font-normal">ID</th>
                 <th class="p-2 text-left font-normal">Username</th>
                 <th class="p-2 text-left font-normal">Email</th>
+                <th class="p-2 text-left font-normal">Role</th>
               </tr>
               for _, user := range users {
                 <tr class="even:bg-[#F6F7F7] odd:bg-white border-b border-[#C4C5C7]">
                     <td class="p-2">{user.Id}</td>
                     <td class="p-2">{user.Username}</td>
                     <td class="p-2">{user.Email}</td>
+                    <td class="p-2">{ common.TranslateRole(user.Role) }</td>
                 </tr>
               }
             </table>
