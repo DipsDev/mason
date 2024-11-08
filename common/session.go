@@ -95,9 +95,19 @@ func WithSession(next func(http.ResponseWriter, *http.Request)) http.Handler {
 func WithAuth(next func(http.ResponseWriter, *http.Request)) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		sess := SessionStore.GetSession(r)
+
+		// If not session, then redirect to login
 		if sess == nil {
 			http.Redirect(w, r, "/login", http.StatusFound)
 			return
+		}
+		// If the session expired, generate a new session
+		if sess.Expired() {
+			newSess := SessionStore.CreateSession(&User{Id: sess.UserId, Username: sess.Username, Email: sess.Email})
+			expiration := time.Now().Add(12 * time.Minute)
+			ck := http.Cookie{Name: SessionName, Value: newSess.Id, Expires: expiration}
+			ck.Path = "/"
+			http.SetCookie(w, &ck)
 		}
 		ctx := context.WithValue(r.Context(), contextClass, sess)
 		next(w, r.WithContext(ctx))

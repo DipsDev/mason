@@ -8,10 +8,12 @@ import (
 )
 
 func CreateUsers(w http.ResponseWriter, r *http.Request) {
-	if r.Method == "" {
+	if r.Method == "" || r.Method == "GET" {
 		pages.Panel("Add New User", components.CreateUsers()).Render(r.Context(), w)
 		return
 	}
+	sess, _ := common.GetSession(r.Context())
+
 }
 
 func ShowUsers(w http.ResponseWriter, r *http.Request) {
