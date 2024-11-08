@@ -10,12 +10,11 @@ import (
 )
 
 type Session struct {
-	Id            string
-	UserId        string
-	Email         string
-	Username      string
-	Authenticated bool
-	Expiry        time.Time
+	Id       string
+	UserId   string
+	Email    string
+	Username string
+	Expiry   time.Time
 	// add more as project grows
 }
 
@@ -43,12 +42,11 @@ func (sp *SessionProvider) CreateSession(user *User) *Session {
 	id := generateId()
 
 	sess := &Session{
-		Expiry:        time.Now().Add(12 * time.Minute),
-		Id:            id,
-		Username:      user.Username,
-		Email:         user.Email,
-		UserId:        user.Id,
-		Authenticated: true,
+		Expiry:   time.Now().Add(12 * time.Minute),
+		Id:       id,
+		Username: user.Username,
+		Email:    user.Email,
+		UserId:   user.Id,
 	}
 
 	sp.lock.Lock()
@@ -82,6 +80,8 @@ type contextKey string
 
 var contextClass = contextKey("session")
 
+// WithSession is a middleware for getting user's session regardless if he is authenticated or not.
+// it allows usage of GetSession inside the required templates.
 func WithSession(next func(http.ResponseWriter, *http.Request)) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		ctx := context.WithValue(r.Context(), contextClass, SessionStore.GetSession(r))
@@ -89,7 +89,23 @@ func WithSession(next func(http.ResponseWriter, *http.Request)) http.Handler {
 	})
 }
 
-func UseSession(ctx context.Context) (*Session, bool) {
+// WithAuth is a middleware for getting user's session only if they are logged in.
+// it returns the session if logged in, or redirects to login if he isn't.
+func WithAuth(next func(http.ResponseWriter, *http.Request)) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		sess := SessionStore.GetSession(r)
+		if sess == nil {
+			http.Redirect(w, r, "/login", http.StatusFound)
+			return
+		}
+		ctx := context.WithValue(r.Context(), contextClass, sess)
+		next(w, r.WithContext(ctx))
+	})
+}
+
+// GetSession fetches the session data from a given context.
+// it returns the current user session, and whether the user is authenticated or not.
+func GetSession(ctx context.Context) (*Session, bool) {
 	if sess, ok := ctx.Value(contextClass).(*Session); ok {
 		return sess, true
 	}
