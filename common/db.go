@@ -7,7 +7,7 @@ import (
 
 var DB *sql.DB
 
-func Init(dsn string) {
+func InitDatabase(dsn string) {
 	var err error
 	DB, err = sql.Open("mysql", dsn)
 	if err != nil {
@@ -21,6 +21,6 @@ func Init(dsn string) {
 	}
 }
 
-func Close() {
+func CloseDatabase() {
 	DB.Close()
 }

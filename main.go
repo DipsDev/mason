@@ -17,8 +17,8 @@ func main() {
 		return
 	}
 
-	common.Init(os.Getenv("MASON_DATABASE_DSN"))
-	defer common.Close()
+	common.InitDatabase(os.Getenv("MASON_DATABASE_DSN"))
+	defer common.CloseDatabase()
 
 	router := http.NewServeMux()
 

@@ -67,18 +67,16 @@ func CreateLogin(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-
-	var passwordSQL, idSQL, emailSQL, usernameSQL string
+	var passwordSQL []byte
+	var idSQL, emailSQL, usernameSQL string
 	err = stmtOut.QueryRow(email, email).Scan(&passwordSQL, &idSQL, &emailSQL, &usernameSQL)
 	if err != nil {
-		w.WriteHeader(http.StatusUnauthorized)
 		pages.Login(r.Form.Get("csrf-token"), "Incorrect username or password").Render(r.Context(), w)
 		return
 	}
 
-	err = bcrypt.CompareHashAndPassword([]byte(passwordSQL), []byte(password))
+	err = bcrypt.CompareHashAndPassword(passwordSQL, []byte(password))
 	if err != nil {
-		w.WriteHeader(http.StatusUnauthorized)
 		pages.Login(r.Form.Get("csrf-token"), "Incorrect username or password").Render(r.Context(), w)
 		return
 	}

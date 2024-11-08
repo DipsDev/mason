@@ -8,7 +8,10 @@ import (
 )
 
 func CreateUsers(w http.ResponseWriter, r *http.Request) {
-	pages.Panel("Add New User", components.CreateUsers()).Render(r.Context(), w)
+	if r.Method == "" {
+		pages.Panel("Add New User", components.CreateUsers()).Render(r.Context(), w)
+		return
+	}
 }
 
 func ShowUsers(w http.ResponseWriter, r *http.Request) {
