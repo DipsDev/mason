@@ -63,6 +63,16 @@ templ CreateUsers() {
                 @quickInput("username", "text")
                 @quickInput("email", "email")
                 @quickInput("password", "password")
+
+                <label class="capitalize flex flex-row items-center justify-between gap-7 w-full">
+                    Role
+                    <select name="role" class="border border-black rounded px-2 py-1 text-sm w-[300px]">
+                        <option value="1">Viewer</option>
+                        <option value="2">Editor</option>
+                        <option value="3">Administrator</option>
+                    </select>
+                </label>
+
                 <input type="submit" value="Add User" class="bg-white self-end text-blue-600 rounded hover:bg-gray-100 cursor-pointer  border-blue-600 border text-sm px-3 py-[0.3rem]">
             </form>
         </main>

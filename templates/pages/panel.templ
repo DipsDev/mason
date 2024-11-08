@@ -21,13 +21,11 @@ templ sidebarLink(name string) {
 templ panelSidebar() {
     <aside class="w-[160px] bg-stone-800 text-white min-h-screen flex flex-col">
         <div class="flex flex-row items-center justify-start bg-stone-800">
-            <div class="h-[32px] w-full flex flex-row items-center justify-center hover:bg-stone-900 px-2 cursor-pointer">
-            <a href="https://github.com/DipsDev/mason" target="_blank">
+            <a href="https://github.com/DipsDev/mason" target="_blank" class="h-[32px] w-full flex flex-row items-center justify-center hover:bg-stone-900 px-2 cursor-pointer">
                 <img src="../../public/mason_logo.svg" alt="Mason Logo" class="brightness-0 invert">
-                </a>
-            </div>
-            <div class="h-[32px] w-full flex flex-row items-center justify-center hover:bg-stone-900 px-2 group cursor-pointer">
-                <a href="#" class="text-xs group-hover:underline"> yoautomation</a>
+            </a>
+            <div class="h-[32px] w-full flex flex-row items-center justify-center hover:bg-stone-900 px-2 group cursor-pointer hover:underline text-xs">
+                yoautomation
             </div>
         </div>
         <nav class="flex flex-col items-start justify-center mt-2">
@@ -46,7 +44,7 @@ templ EmptyPanel() {
 
 templ Panel(title string, view templ.Component) {
 
-    {{ session, _ := common.UseSession(ctx) }}
+    {{ session, _ := common.GetSession(ctx) }}
 
     @templates.Header(title)
     <body class="bg-gray-100 flex">
