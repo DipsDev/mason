@@ -11,36 +11,6 @@ import (
 	"time"
 )
 
-type Session struct {
-	id     string
-	user   *common.User
-	expiry time.Time
-	// add more as project grows
-}
-
-func (s *Session) Expired() bool {
-	return time.Now().After(s.expiry)
-}
-
-var sessions = map[string]*Session{}
-
-func createSession(user *common.User) *Session {
-	bytes := make([]byte, 24)
-	if _, err := rand.Read(bytes); err != nil {
-		panic(err)
-	}
-	id := hex.EncodeToString(bytes)
-
-	sess := &Session{
-		expiry: time.Now().Add(12 * time.Minute),
-		id:     id,
-		user:   user,
-	}
-	sessions[id] = sess
-	return sess
-
-}
-
 func generateCsrf() string {
 	bytes := make([]byte, 24)
 	if _, err := rand.Read(bytes); err != nil {
@@ -114,8 +84,9 @@ func CreateLogin(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// create a session cookie
-	sess := createSession(&common.User{Id: idSQL, Email: email, Username: usernameSQL})
-	cookie := createCookie("MASONSESSION", sess.id)
+	sess := common.SessionStore.CreateSession(&common.User{Id: idSQL, Email: email, Username: usernameSQL})
+	cookie := createCookie(common.SessionName, sess.Id)
+	cookie.Path = "/"
 	http.SetCookie(w, cookie)
 
 	// Redirect user to dashboard
@@ -125,7 +96,7 @@ func CreateLogin(w http.ResponseWriter, r *http.Request) {
 
 func HandleLogout(w http.ResponseWriter, r *http.Request) {
 
-	c, err := r.Cookie("MASONSESSION")
+	c, err := r.Cookie(common.SessionName)
 	if err != nil {
 		if errors.Is(err, http.ErrNoCookie) {
 			w.WriteHeader(http.StatusUnauthorized)
@@ -136,10 +107,10 @@ func HandleLogout(w http.ResponseWriter, r *http.Request) {
 	}
 
 	sessToken := c.Value
-	delete(sessions, sessToken)
+	common.SessionStore.DeleteSession(sessToken)
 
 	http.SetCookie(w, &http.Cookie{
-		Name:    "MASONSESSION",
+		Name:    common.SessionName,
 		Value:   "",
 		Expires: time.Now(),
 	})

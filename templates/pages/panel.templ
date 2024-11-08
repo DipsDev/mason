@@ -2,9 +2,12 @@ package pages
 
 import (
     "github.com/DipsDev/mason/templates"
+    "github.com/DipsDev/mason/common"
     "fmt"
 
 )
+
+
 
 templ sidebarLink(name string) {
                 <p hx-select="#dashboard-data" hx-push-url="true" hx-get={ string(templ.URL(fmt.Sprintf("/panel/%s/", name)))} hx-swap="outerHTML" hx-target="#dashboard-data"
@@ -42,6 +45,9 @@ templ EmptyPanel() {
 }
 
 templ Panel(title string, view templ.Component) {
+
+    {{ session, _ := common.UseSession(ctx) }}
+
     @templates.Header(title)
     <body class="bg-gray-100 flex">
 
@@ -57,7 +63,7 @@ templ Panel(title string, view templ.Component) {
             <div class="space-x-4 flex items-center">
 
             </div>
-            <div class="font-semibold text-xs">Welcome back, David</div>
+            <div class="font-semibold text-xs">Welcome back, { session.Username }</div>
         </header>
 
 

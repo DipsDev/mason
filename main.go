@@ -30,14 +30,14 @@ func main() {
 	router.HandleFunc("/logout/", controllers.HandleLogout)
 
 	// Panel
-	router.HandleFunc("/panel/", controllers.ShowPanelFrame)
-	router.HandleFunc("/panel/overview/", controllers.ShowPanelOverview)
-	router.HandleFunc("/panel/settings/", controllers.ShowPanelSettings)
-	router.HandleFunc("/panel/pages/", controllers.ShowPanelPages)
+	router.Handle("/panel/", common.WithSession(controllers.ShowPanelFrame))
+	router.Handle("/panel/overview/", common.WithSession(controllers.ShowPanelOverview))
+	router.Handle("/panel/settings/", common.WithSession(controllers.ShowPanelSettings))
+	router.Handle("/panel/pages/", common.WithSession(controllers.ShowPanelPages))
 
 	// users
-	router.HandleFunc("/panel/users/", controllers.ShowUsers)
-	router.HandleFunc("/panel/users/new", controllers.CreateUsers)
+	router.Handle("/panel/users/", common.WithSession(controllers.ShowUsers))
+	router.Handle("/panel/users/new", common.WithSession(controllers.CreateUsers))
 
 	server := &http.Server{Addr: ":8080", Handler: router}
 
