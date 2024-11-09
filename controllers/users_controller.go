@@ -7,6 +7,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 	"net/http"
 	"strconv"
+	"strings"
 )
 
 type createFormData struct {
@@ -56,7 +57,8 @@ func CreateUsers(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if formData.username == "" || formData.password == "" || formData.email == "" || formData.roleCode == "" {
+	if strings.TrimSpace(formData.username) == "" || strings.TrimSpace(formData.password) == "" ||
+		strings.TrimSpace(formData.email) == "" || strings.TrimSpace(formData.roleCode) == "" {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
@@ -178,19 +180,61 @@ func EditUsers(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "/panel", http.StatusFound)
 	}
 
-	stmtOut, err := common.DB.Prepare("SELECT id, username, email, role from users where id = ?")
+	if r.Method == "" || r.Method == "GET" {
+		stmtOut, err := common.DB.Prepare("SELECT id, username, email, role from users where id = ?")
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+		defer stmtOut.Close()
+
+		var user common.User
+		err = stmtOut.QueryRow(userId).Scan(&user.Id, &user.Username, &user.Email, &user.Role)
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+
+		pages.EditUsers(&user, "").Render(r.Context(), w)
+		return
+	}
+
+	if err := r.ParseForm(); err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	newUsername := r.Form.Get("username")
+	newRole := r.Form.Get("role")
+
+	role, err := strconv.Atoi(newRole)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	if role >= int(common.END) || role < 0 {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	if strings.TrimSpace(newUsername) == "" || strings.TrimSpace(newRole) == "" {
+		pages.EditUsers(&common.User{Id: userId, Username: newUsername}, "").Render(r.Context(), w)
+		return
+	}
+
+	stmtOut, err := common.DB.Prepare("UPDATE users SET username = ?, role = ? WHERE id = ?")
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 	defer stmtOut.Close()
 
-	var user common.User
-	err = stmtOut.QueryRow(userId).Scan(&user.Id, &user.Username, &user.Email, &user.Role)
+	_, err = stmtOut.Exec(newUsername, newRole, userId)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
-	pages.EditUsers(&user).Render(r.Context(), w)
+	http.Redirect(w, r, "/panel/users", http.StatusFound)
+
 }
