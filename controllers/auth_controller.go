@@ -33,9 +33,9 @@ func createCookie(name string, value string) *http.Cookie {
 	return &ck
 }
 
-type LoginProps struct {
-	CsrfToken    string
+type LoginViewModel struct {
 	ErrorMessage string
+	StatusCode   int
 }
 
 func ShowLogin(w http.ResponseWriter, r *http.Request) {
@@ -46,40 +46,46 @@ func ShowLogin(w http.ResponseWriter, r *http.Request) {
 }
 
 func CreateLogin(w http.ResponseWriter, r *http.Request) {
+	result := createLogin(w, r)
+	if result.StatusCode == http.StatusOK {
+		http.Redirect(w, r, "/panel", http.StatusFound)
+		return
+	}
+	pages.Login(r.FormValue("csrf-token"), result.ErrorMessage).Render(r.Context(), w)
+}
+
+func createLogin(w http.ResponseWriter, r *http.Request) *LoginViewModel {
 
 	err := r.ParseForm()
 	if err != nil {
-		return
+		return &LoginViewModel{ErrorMessage: "There was an error trying to execute the command.", StatusCode: http.StatusBadRequest}
+
 	}
 	if r.Form.Get("csrf-token") == "" || !validateCsrf(r.Form.Get("csrf-token"), r) {
-		w.WriteHeader(http.StatusForbidden)
-		return
+		return &LoginViewModel{ErrorMessage: "Invalid csrf.", StatusCode: http.StatusBadRequest}
 	}
 	email := r.Form.Get("email")
 	password := r.Form.Get("password")
 	if email == "" || password == "" {
-		w.WriteHeader(http.StatusBadRequest)
-		return
+		return &LoginViewModel{ErrorMessage: "Invalid email or password.", StatusCode: http.StatusBadRequest}
 	}
 
 	stmtOut, err := common.DB.Prepare("SELECT password, id, email, username, role FROM users WHERE email = ? OR username = ?")
 	defer stmtOut.Close()
+
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		return
+		return &LoginViewModel{ErrorMessage: "There was an error trying to execute the command.", StatusCode: http.StatusInternalServerError}
 	}
 	var passwordSQL []byte
 	var sqlUser common.User
 	err = stmtOut.QueryRow(email, email).Scan(&passwordSQL, &sqlUser.Id, &sqlUser.Email, &sqlUser.Username, &sqlUser.Role)
 	if err != nil {
-		pages.Login(r.Form.Get("csrf-token"), "Incorrect username or password").Render(r.Context(), w)
-		return
+		return &LoginViewModel{ErrorMessage: "The password or username used are incorrect.", StatusCode: http.StatusUnauthorized}
 	}
 
 	err = bcrypt.CompareHashAndPassword(passwordSQL, []byte(password))
 	if err != nil {
-		pages.Login(r.Form.Get("csrf-token"), "Incorrect username or password").Render(r.Context(), w)
-		return
+		return &LoginViewModel{ErrorMessage: "The password or username used are incorrect.", StatusCode: http.StatusUnauthorized}
 	}
 
 	// create a session cookie
@@ -88,7 +94,7 @@ func CreateLogin(w http.ResponseWriter, r *http.Request) {
 	http.SetCookie(w, cookie)
 
 	// Redirect user to dashboard
-	http.Redirect(w, r, "/panel", http.StatusFound)
+	return &LoginViewModel{ErrorMessage: "", StatusCode: http.StatusOK}
 
 }
 

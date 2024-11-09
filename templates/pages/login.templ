@@ -2,7 +2,7 @@ package pages
 
 import "github.com/DipsDev/mason/templates"
 
-templ Login(csrf string, error_message string) {
+templ Login(csrf string, errorMessage string) {
     @templates.Header("login")
     <body class="flex flex-col items-center justify-center min-h-screen bg-gray-100">
     <div class="flex justify-center">
@@ -37,7 +37,7 @@ templ Login(csrf string, error_message string) {
         </form>
 
         <!-- Errors -->
-        <p class="text-red-600 text-sm">{ error_message }</p>
+        <p class="text-red-600 text-sm">{ errorMessage }</p>
 
 
     </div>

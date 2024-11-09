@@ -55,7 +55,10 @@ templ Panel(title string) {
             <div class="space-x-4 flex items-center">
 
             </div>
-            <div class="font-semibold text-xs">Welcome back, { session.Username }</div>
+            <div class="font-semibold text-xs flex flex-row items-center justify-start gap-3">
+            <p>Welcome back, { session.Username }</p>
+            <a href="/logout">logout</a>
+            </div>
         </header>
 
 
