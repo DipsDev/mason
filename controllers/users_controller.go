@@ -2,7 +2,6 @@ package controllers
 
 import (
 	"github.com/DipsDev/mason/common"
-	"github.com/DipsDev/mason/templates/components"
 	"github.com/DipsDev/mason/templates/pages"
 	"golang.org/x/crypto/bcrypt"
 	"net/http"
@@ -26,7 +25,7 @@ func CreateUsers(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if r.Method == "" || r.Method == "GET" {
-		pages.Panel("Add New User", components.CreateUsers(session.CsrfToken)).Render(r.Context(), w)
+		pages.CreateUsers(session.CsrfToken).Render(r.Context(), w)
 		return
 	}
 
@@ -115,5 +114,5 @@ func ShowUsers(w http.ResponseWriter, r *http.Request) {
 
 		users = append(users, cur)
 	}
-	pages.Panel("Users", components.ShowUsers(users, len(users))).Render(r.Context(), w)
+	pages.ShowUsers(users, len(users)).Render(r.Context(), w)
 }

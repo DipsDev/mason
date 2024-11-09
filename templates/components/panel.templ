@@ -1,0 +1,67 @@
+package components
+
+import (
+    "github.com/DipsDev/mason/templates"
+    "github.com/DipsDev/mason/common"
+    "fmt"
+
+)
+
+templ sidebarLink(name string) {
+                <p hx-select="#dashboard-data" hx-push-url="true" hx-get={ string(templ.URL(fmt.Sprintf("/panel/%s/", name)))} hx-swap="outerHTML" hx-target="#dashboard-data"
+                class="w-full text-sm capitalize cursor-pointer block px-4 py-2 text-white hover:bg-stone-900 flex flex-row items-center justify-start gap-2">
+                    <img src={ string(templ.URL(fmt.Sprintf("../../public/icons/icon-%s.svg", name)))} alt={fmt.Sprintf("icon-%s", name)}>
+                    {name}
+                </p>
+}
+
+
+templ panelSidebar() {
+    <aside class="w-[160px] bg-stone-800 text-white min-h-screen flex flex-col">
+        <div class="flex flex-row items-center justify-start bg-stone-800">
+            <a href="https://github.com/DipsDev/mason" target="_blank" class="h-[32px] w-full flex flex-row items-center justify-center hover:bg-stone-900 px-2 cursor-pointer">
+                <img src="../../public/mason_logo.svg" alt="Mason Logo" class="brightness-0 invert">
+            </a>
+            <div class="h-[32px] w-full flex flex-row items-center justify-center hover:bg-stone-900 px-2 group cursor-pointer hover:underline text-xs">
+                yoautomation
+            </div>
+        </div>
+        <nav class="flex flex-col items-start justify-center mt-2">
+            @sidebarLink("overview")
+            @sidebarLink("pages")
+            @sidebarLink("products")
+            @sidebarLink("users")
+            @sidebarLink("settings")
+        </nav>
+    </aside>
+}
+
+templ Panel(title string) {
+
+    {{ session, _ := common.GetSession(ctx) }}
+
+    @templates.Header(title)
+    <body class="bg-gray-100 flex">
+
+    <!-- Sidebar -->
+    @panelSidebar()
+
+    <!-- Main Content -->
+    <div class="flex-1 flex flex-col">
+
+        <!-- Header -->
+        <header class="bg-stone-800 text-white px-4 py-2 flex items-center justify-between">
+
+            <div class="space-x-4 flex items-center">
+
+            </div>
+            <div class="font-semibold text-xs">Welcome back, { session.Username }</div>
+        </header>
+
+
+        <!-- Main Dashboard Content -->
+        { children... }
+
+    </div>
+    </body>
+}

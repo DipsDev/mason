@@ -1,0 +1,89 @@
+package pages
+
+import (
+    "github.com/DipsDev/mason/templates/components"
+)
+
+
+
+
+
+templ EmptyPanel() {
+    @components.Panel("Panel") {
+        <main id="dashboard-data" class="p-6"></main>
+    }
+}
+
+templ Settings() {
+    @components.Panel("settings") {
+        <main id="dashboard-data" class="p-6">
+            <!-- Overview Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-10 ml-10">
+                 <div class="bg-white border border-gray-300">
+                     <h3 class=" text-[0.9rem] font-semibold px-3 py-1">Quick Check</h3>
+                     <hr />
+                     <div class="flex flex-col justify-center gap-3 px-3 py-2">
+                         <div class="flex flex-row items-center justify-between">
+                             <p class="text-sm">Users</p>
+                             <button class="text-white text-sm px-3 py-1 border border-red-400 bg-[#DC3232] rounded">Disable</button>
+                         </div>
+                     </div>
+                     <div class="flex flex-col justify-center gap-3 px-3 py-2">
+                         <div class="flex flex-row items-center justify-between">
+                             <p class="text-sm">Users</p>
+                             <button class="text-white text-sm px-3 py-1 border border-red-400 bg-[#DC3232] rounded">Disable</button>
+                         </div>
+                     </div>
+                     <div class="flex flex-col justify-center gap-3 px-3 py-2">
+                         <div class="flex flex-row items-center justify-between">
+                             <p class="text-sm">Users</p>
+                             <button class="text-white text-sm px-3 py-1 border border-blue-400 bg-[#2271B1] rounded">Configure</button>
+                         </div>
+                     </div>
+                </div>
+            </div>
+
+        </main>
+    }
+
+}
+
+templ Overview() {
+        @components.Panel("overview") {
+            <main id="dashboard-data" class="p-6 space-y-6">
+                        <h1 class="text-3xl">Overview</h1>
+                        <!-- Overview Cards -->
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            <div class="bg-white p-6">
+                                <h2 class="text-lg font-semibold">Pages</h2>
+                                <p class="text-3xl font-bold">14</p>
+                            </div>
+                            <div class="bg-white p-6">
+                                <h2 class="text-lg font-semibold">Pages</h2>
+                                <p class="text-3xl font-bold">14</p>
+                            </div>
+                        </div>
+
+                        <!-- Recent Activity -->
+                        <div class="bg-white p-6">
+                            <h2 class="text-xl font-semibold mb-4">Recent Activity</h2>
+                            <ul class="space-y-2">
+                                <li class="flex justify-between border-b pb-2">
+                                    <span>New page published</span>
+                                    <span class="text-sm text-gray-500">10 minutes ago</span>
+                                </li>
+                                <li class="flex justify-between border-b pb-2">
+                                    <span>User comment approved</span>
+                                    <span class="text-sm text-gray-500">30 minutes ago</span>
+                                </li>
+                                <li class="flex justify-between">
+                                    <span>Plugin updated</span>
+                                    <span class="text-sm text-gray-500">1 hour ago</span>
+                                </li>
+                            </ul>
+                        </div>
+                    </main>
+        }
+}
+
+

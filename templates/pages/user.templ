@@ -1,7 +1,8 @@
-package components
+package pages
 
 import (
     "github.com/DipsDev/mason/common"
+    "github.com/DipsDev/mason/templates/components"
     "fmt"
 )
 
@@ -15,6 +16,7 @@ templ quickInput(name string, inpType string) {
 
 templ ShowUsers(users []common.User, users_count int) {
         {{ session, _ := common.GetSession(ctx) }}
+        @components.Panel("Users") {
         <main id="dashboard-data" class="bg-gray-100 p-6">
             <div class="flex flex-row justify-between items-center">
               <div>
@@ -51,11 +53,13 @@ templ ShowUsers(users []common.User, users_count int) {
             </table>
             <p class="text-xs text-gray-900 text-right">{ fmt.Sprintf("%d", users_count) } items</p>
         </main>
+        }
 
 
 }
 
 templ CreateUsers(csrfToken string) {
+        @components.Panel("Add New Users") {
         <main id="dashboard-data" class="bg-gray-100 p-6">
             <div class="flex flex-row justify-between items-center">
               <div>
@@ -82,4 +86,5 @@ templ CreateUsers(csrfToken string) {
                 <input type="submit" value="Add User" class="bg-white self-end text-blue-600 rounded hover:bg-gray-100 cursor-pointer  border-blue-600 border text-sm px-3 py-[0.3rem]">
             </form>
         </main>
+        }
 }

@@ -1,0 +1,41 @@
+package pages
+
+import (
+    "github.com/DipsDev/mason/templates/components"
+)
+
+
+
+templ Pages() {
+    @components.Panel("pages") {
+        <main id="dashboard-data" class="bg-gray-100 p-6">
+            <div class="flex flex-row justify-between items-center">
+              <div>
+                <span class="mb-3 flex flex-row items-center gap-3">
+                    <h1 class="text-2xl">Pages</h1>
+                    <input type="button" value="Add New Page" class="bg-white text-blue-600 rounded hover:bg-gray-100 cursor-pointer  border-blue-600 border text-sm px-3 py-[0.3rem]" />
+                </span>
+                <p class="text-sm mb-3">All (2) | Published (1) | Draft (1)</p>
+              </div>
+              <div class="flex flex-row gap-4">
+                <input aria-label="search" class="border border-gray-500 rounded px-2 text-sm" type="text" name="search_bar" />
+                <input class="bg-white text-blue-600 rounded  border-blue-600 border text-sm px-3 py-[0.3rem] hover:bg-gray-100 cursor-pointer" type="button" value="Search Pages" />
+              </div>
+            </div>
+            <p class="text-xs text-gray-900 text-right">2 items</p>
+            <table class="my-3 w-full border border-gray-300 text-sm">
+              <tr class="border-b border-[#C4C5C7] bg-white">
+                <th class="p-2 py-2 text-left font-normal">Title</th>
+                <th class="p-2 py-2 text-left font-normal">Author</th>
+                <th class="p-2 py-2 text-left font-normal">Date</th>
+              </tr>
+              <tr class="even:bg-[#F6F7F7] odd:bg-white border-b border-[#C4C5C7]">
+                   <td class="p-2 py-2 ">Privacy Policy</td>
+                   <td class="p-2 py-2">admin</td>
+                   <td class="p-2 py-2">Last Modified <br /> 2020/8/05</td>
+              </tr>
+            </table>
+            <p class="text-xs text-gray-900 text-right">2 items</p>
+        </main>
+    }
+}
