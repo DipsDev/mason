@@ -38,6 +38,7 @@ func main() {
 	// users
 	router.Handle("/panel/users/", common.WithAuth(controllers.ShowUsers))
 	router.Handle("/panel/users/new", common.WithAuth(controllers.CreateUsers))
+	router.Handle("/panel/users/{user_id}", common.WithAuth(controllers.EditUsers))
 
 	server := &http.Server{Addr: ":8080", Handler: router}
 

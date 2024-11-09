@@ -116,7 +116,7 @@ func WithSession(next func(http.ResponseWriter, *http.Request)) http.Handler {
 }
 
 // WithAuth is a middleware for getting user's session only if they are logged in.
-// it redirects to login if the user isn't logged in.
+// it redirects to login if the user isn't logged in or doesn't have the sufficient permissions.
 // it allows usage of GetSession inside the required templates.
 func WithAuth(next func(http.ResponseWriter, *http.Request)) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

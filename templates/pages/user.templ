@@ -6,16 +6,22 @@ import (
     "fmt"
 )
 
-templ quickInput(name string, inpType string) {
+templ quickInput(name string, inpType string, disabled bool, defaultValue string) {
     <label class="capitalize flex flex-row items-center justify-between gap-7 w-full">
         { name }
-        <input class="border border-black rounded px-2 py-1 text-sm w-[300px]" type={ inpType } name={ name } required />
+        if disabled {
+            <input class="disabled:bg-gray-200 border border-black rounded px-2 py-1 text-sm w-[300px]" value={ defaultValue } type={ inpType } name={ name } disabled required />
+        }
+        else {
+            <input class="disabled:bg-gray-200 border border-black rounded px-2 py-1 text-sm w-[300px]" value={ defaultValue } type={ inpType } name={ name } required />
+        }
     </label>
 
 }
 
 templ ShowUsers(users []common.User, users_count int, q string) {
         {{ session, _ := common.GetSession(ctx) }}
+        {{ user_items := fmt.Sprintf("%d items", users_count) }}
         @components.Panel("Users") {
         <main id="dashboard-data" class="bg-gray-100 p-6">
             <div class="flex flex-row justify-between items-center">
@@ -30,9 +36,9 @@ templ ShowUsers(users []common.User, users_count int, q string) {
                     </span>
                     <p class="text-sm mb-3">All users registered in the system.</p>
                     </div>
-                if q != "" {
-                    <p class="text-sm">Search results for: <span class="font-semibold">{ q }</span></p>
-                }
+                    if q != "" {
+                        <p class="text-sm">Search results for: <span class="font-semibold">{ q }</span></p>
+                    }
               </div>
 
               <form class="flex flex-row gap-4" method="get">
@@ -40,7 +46,7 @@ templ ShowUsers(users []common.User, users_count int, q string) {
                 <input  class="bg-white text-blue-600 rounded  border-blue-600 border text-sm px-3 py-[0.3rem] hover:bg-gray-100 cursor-pointer" type="submit" value="Search Users" />
               </form>
             </div>
-            <p class="text-xs text-gray-900 text-right">{ fmt.Sprintf("%d", users_count) } items</p>
+            <p class="text-xs text-gray-900 text-right">{ user_items }</p>
             <table class="my-3 w-full border border-gray-300 text-sm">
               <tr class="border-b border-[#C4C5C7] bg-white">
                 <th class="p-2 text-left font-normal">ID</th>
@@ -49,22 +55,58 @@ templ ShowUsers(users []common.User, users_count int, q string) {
                 <th class="p-2 text-left font-normal">Role</th>
               </tr>
               for _, user := range users {
-                <tr class="even:bg-[#F6F7F7] odd:bg-white border-b border-[#C4C5C7]">
+                <tr class="even:bg-[#F6F7F7] odd:bg-white border-b border-[#C4C5C7] group">
                     <td class="p-2 pb-[2rem]">{user.Id}</td>
                     <td class="p-2 pb-[2rem]">{user.Username}</td>
                     <td class="p-2 pb-[2rem]">{user.Email}</td>
                     <td class="p-2 pb-[2rem]">{ common.TranslateRole(user.Role) }</td>
+                    if user.Id != session.UserId && session.Role == 2 {
+                        <td class="p-2 pb-[2rem]">
+                        <button hx-select="#dashboard-data" hx-push-url="true" hx-get={ string(templ.URL(fmt.Sprintf("/panel/users/%s", user.Id))) } hx-swap="outerHTML" hx-target="#dashboard-data"
+                                class="text-transparent group-hover:text-blue-600 hover:underline ">Edit</button>
+                        </td>
+                    }
                 </tr>
               }
             </table>
-            <p class="text-xs text-gray-900 text-right">{ fmt.Sprintf("%d", users_count) } items</p>
+            <p class="text-xs text-gray-900 text-right">{  user_items }</p>
         </main>
         }
-
-
 }
 
-templ CreateUsers(csrfToken string) {
+templ EditUsers(user *common.User) {
+    {{ session, _ := common.GetSession(ctx) }}
+    @components.Panel("Edit User") {
+        <main id="dashboard-data" class="bg-gray-100 p-6">
+                <div class="flex flex-row justify-between items-center">
+                  <div>
+                    <h1 class="text-2xl mb-3 gap-3">Edit User</h1>
+                    <p class="text-sm mb-3">Currently editing: <span class="font-semibold">{ user.Username }</span></p>
+                  </div>
+                </div>
+                <form method="post" class="mt-7 flex flex-col items-start justify-center w-2/4 max-w-[500px] gap-6">
+                    <input type="hidden" value={ session.CsrfToken } name="csrf-token" />
+                    @quickInput("username", "text", false, user.Username)
+                    @quickInput("email", "email", true, user.Email)
+
+                    <label class="capitalize flex flex-row items-center justify-between gap-7 w-full">
+                        Role
+                        <select name="role" class="border border-black rounded px-2 py-1 text-sm w-[300px] bg-white">
+                            <option value="0">Viewer</option>
+                            <option value="1">Editor</option>
+                            <option value="2">Administrator</option>
+                        </select>
+                    </label>
+
+                    <input type="submit" value="Edit User" class="bg-white self-end text-blue-600 rounded hover:bg-gray-100 cursor-pointer  border-blue-600 border text-sm px-3 py-[0.3rem]">
+
+                </form>
+        </main>
+    }
+}
+
+templ CreateUsers() {
+        {{ session, _ := common.GetSession(ctx) }}
         @components.Panel("Add New Users") {
         <main id="dashboard-data" class="bg-gray-100 p-6">
             <div class="flex flex-row justify-between items-center">
@@ -74,15 +116,15 @@ templ CreateUsers(csrfToken string) {
               </div>
             </div>
             <form method="post" action="/panel/users/new" class="mt-7 flex flex-col items-start justify-center w-2/4 max-w-[500px] gap-6">
-                @quickInput("username", "text")
-                @quickInput("email", "email")
-                @quickInput("password", "password")
+                @quickInput("username", "text", false, "")
+                @quickInput("email", "email", false, "")
+                @quickInput("password", "password", false, "")
 
-                <input type="hidden" value={ csrfToken } name="csrf-token" />
+                <input type="hidden" value={ session.CsrfToken } name="csrf-token" />
 
                 <label class="capitalize flex flex-row items-center justify-between gap-7 w-full">
                     Role
-                    <select name="role" class="border border-black rounded px-2 py-1 text-sm w-[300px]">
+                    <select name="role" class="border border-black rounded px-2 py-1 text-sm w-[300px] bg-white">
                         <option value="0">Viewer</option>
                         <option value="1">Editor</option>
                         <option value="2">Administrator</option>

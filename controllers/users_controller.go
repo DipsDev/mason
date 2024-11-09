@@ -25,17 +25,18 @@ func CreateUsers(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if r.Method == "" || r.Method == "GET" {
-		pages.CreateUsers(session.CsrfToken).Render(r.Context(), w)
-		return
-	}
-
 	user := common.GetSessionUser(r.Context())
 
 	if user == nil || user.Role != common.Administrator {
 		http.Redirect(w, r, "/panel", http.StatusFound)
 		return
 	}
+
+	if r.Method == "" || r.Method == "GET" {
+		pages.CreateUsers().Render(r.Context(), w)
+		return
+	}
+
 	formData := createFormData{}
 	if err := r.ParseForm(); err != nil {
 		w.WriteHeader(http.StatusBadRequest)
@@ -90,6 +91,39 @@ func CreateUsers(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/panel/users", http.StatusFound)
 }
 
+func DeleteUsers(w http.ResponseWriter, r *http.Request) {
+	user := common.GetSessionUser(r.Context())
+	if user == nil || user.Role != common.Administrator {
+		http.Redirect(w, r, "/panel", http.StatusFound)
+		return
+	}
+
+	if err := r.ParseForm(); err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	deleteId := r.Form.Get("user_id")
+
+	if deleteId == "" || deleteId == user.Id {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	stmtOut, err := common.DB.Prepare("DELETE FROM users WHERE id = ?")
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	defer stmtOut.Close()
+	_, err = stmtOut.Exec(deleteId)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	http.Redirect(w, r, "/panel/users", http.StatusFound)
+}
+
 func ShowUsers(w http.ResponseWriter, r *http.Request) {
 
 	q := r.URL.Query().Get("q")
@@ -134,4 +168,29 @@ func ShowUsers(w http.ResponseWriter, r *http.Request) {
 		users = append(users, cur)
 	}
 	pages.ShowUsers(users, len(users), q).Render(r.Context(), w)
+}
+
+func EditUsers(w http.ResponseWriter, r *http.Request) {
+	userId := r.PathValue("user_id")
+	currentUser := common.GetSessionUser(r.Context())
+
+	if currentUser.Role != common.Administrator {
+		http.Redirect(w, r, "/panel", http.StatusFound)
+	}
+
+	stmtOut, err := common.DB.Prepare("SELECT id, username, email, role from users where id = ?")
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	defer stmtOut.Close()
+
+	var user common.User
+	err = stmtOut.QueryRow(userId).Scan(&user.Id, &user.Username, &user.Email, &user.Role)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	pages.EditUsers(&user).Render(r.Context(), w)
 }
