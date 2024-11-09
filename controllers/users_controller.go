@@ -174,7 +174,7 @@ func EditUsers(w http.ResponseWriter, r *http.Request) {
 	userId := r.PathValue("user_id")
 	currentUser := common.GetSessionUser(r.Context())
 
-	if currentUser.Role != common.Administrator {
+	if currentUser.Role != common.Administrator || currentUser.Id == userId {
 		http.Redirect(w, r, "/panel", http.StatusFound)
 	}
 
