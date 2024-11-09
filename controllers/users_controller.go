@@ -100,12 +100,7 @@ func DeleteUsers(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := r.ParseForm(); err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		return
-	}
-
-	deleteId := r.Form.Get("user_id")
+	deleteId := r.PathValue("user_id")
 
 	if deleteId == "" || deleteId == user.Id {
 		w.WriteHeader(http.StatusBadRequest)
@@ -121,6 +116,11 @@ func DeleteUsers(w http.ResponseWriter, r *http.Request) {
 	_, err = stmtOut.Exec(deleteId)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	if r.Header.Get("HX-Request") != "" {
+		w.Header().Set("HX-Redirect", "/panel/users")
 		return
 	}
 	http.Redirect(w, r, "/panel/users", http.StatusFound)
@@ -196,6 +196,11 @@ func EditUsers(w http.ResponseWriter, r *http.Request) {
 		}
 
 		pages.EditUsers(&user, "").Render(r.Context(), w)
+		return
+	}
+
+	if r.Method == "DELETE" {
+		DeleteUsers(w, r)
 		return
 	}
 
