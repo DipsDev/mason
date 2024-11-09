@@ -53,7 +53,7 @@ templ ShowUsers(users []common.User, users_count int) {
 
 }
 
-templ CreateUsers() {
+templ CreateUsers(csrfToken string) {
         <main id="dashboard-data" class="bg-gray-100 p-6">
             <div class="flex flex-row justify-between items-center">
               <div>
@@ -65,6 +65,8 @@ templ CreateUsers() {
                 @quickInput("username", "text")
                 @quickInput("email", "email")
                 @quickInput("password", "password")
+
+                <input type="hidden" value={ csrfToken } name="csrf-token" />
 
                 <label class="capitalize flex flex-row items-center justify-between gap-7 w-full">
                     Role

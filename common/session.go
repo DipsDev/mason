@@ -10,11 +10,12 @@ import (
 )
 
 type Session struct {
-	Id       string
-	UserId   string
-	Email    string
-	Username string
-	Expiry   time.Time
+	Id        string
+	CsrfToken string
+	UserId    string
+	Email     string
+	Username  string
+	Expiry    time.Time
 	// add more as project grows
 }
 
@@ -42,11 +43,12 @@ func (sp *SessionProvider) CreateSession(user *User) *Session {
 	id := generateId()
 
 	sess := &Session{
-		Expiry:   time.Now().Add(12 * time.Minute),
-		Id:       id,
-		Username: user.Username,
-		Email:    user.Email,
-		UserId:   user.Id,
+		Expiry:    time.Now().Add(12 * time.Minute),
+		CsrfToken: generateId(),
+		Id:        id,
+		Username:  user.Username,
+		Email:     user.Email,
+		UserId:    user.Id,
 	}
 
 	sp.lock.Lock()

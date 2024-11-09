@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"fmt"
 	"github.com/DipsDev/mason/common"
 	"github.com/DipsDev/mason/templates/components"
 	"github.com/DipsDev/mason/templates/pages"
@@ -11,19 +10,28 @@ import (
 )
 
 type createFormData struct {
-	username string
-	email    string
-	password string
-	roleCode string
+	username  string
+	email     string
+	password  string
+	roleCode  string
+	csrfToken string
 }
 
 func CreateUsers(w http.ResponseWriter, r *http.Request) {
-	if r.Method == "" || r.Method == "GET" {
-		pages.Panel("Add New User", components.CreateUsers()).Render(r.Context(), w)
+	session, ok := common.GetSession(r.Context())
+
+	if !ok {
+		http.Redirect(w, r, "/login", http.StatusFound)
 		return
 	}
+
+	if r.Method == "" || r.Method == "GET" {
+		pages.Panel("Add New User", components.CreateUsers(session.CsrfToken)).Render(r.Context(), w)
+		return
+	}
+
 	user := common.GetSessionUser(r.Context())
-	fmt.Println(user, common.Administrator)
+
 	if user == nil || user.Role != common.Administrator {
 		http.Redirect(w, r, "/panel", http.StatusFound)
 		return
@@ -39,6 +47,13 @@ func CreateUsers(w http.ResponseWriter, r *http.Request) {
 	formData.username = r.Form.Get("username")
 	formData.password = r.Form.Get("password")
 	formData.email = r.Form.Get("email")
+	formData.csrfToken = r.Form.Get("csrf-token")
+
+	// validate csrf
+	if formData.csrfToken != session.CsrfToken {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
 
 	if formData.username == "" || formData.password == "" || formData.email == "" || formData.roleCode == "" {
 		w.WriteHeader(http.StatusBadRequest)
