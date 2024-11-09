@@ -124,8 +124,11 @@ func WithAuth(next func(http.ResponseWriter, *http.Request)) http.Handler {
 
 		// If not session, then redirect to login
 		if sess == nil || sess.Expired() {
-			w.Header().Set("HX-Redirect", "/login")
-			// http.Redirect(w, r, "/login", http.StatusFound)
+			if r.Header.Get("HX-Request") != "" {
+				w.Header().Set("HX-Redirect", "/login")
+				return
+			}
+			http.Redirect(w, r, "/login", http.StatusFound)
 			return
 		}
 

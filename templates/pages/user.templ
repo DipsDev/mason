@@ -14,25 +14,31 @@ templ quickInput(name string, inpType string) {
 
 }
 
-templ ShowUsers(users []common.User, users_count int) {
+templ ShowUsers(users []common.User, users_count int, q string) {
         {{ session, _ := common.GetSession(ctx) }}
         @components.Panel("Users") {
         <main id="dashboard-data" class="bg-gray-100 p-6">
             <div class="flex flex-row justify-between items-center">
-              <div>
-                <span class="mb-3 flex flex-row items-center gap-3">
-                    <h1 class="text-2xl">Users</h1>
-                    if session.Role == 2 {
-                        <input hx-select="#dashboard-data" hx-push-url="true" hx-get="/panel/users/new" hx-swap="outerHTML" hx-target="#dashboard-data"
-                                                                 type="button" value="Add New User" class="bg-white text-blue-600 rounded hover:bg-gray-100 cursor-pointer  border-blue-600 border text-sm px-3 py-[0.3rem]" />
-                    }
-                </span>
-                <p class="text-sm mb-3">All users registered in the system.</p>
+              <div class="flex flex-row justify-start gap-3">
+                <div class="flex flex-col justify-center items-start">
+                    <span class="mb-3 flex flex-row items-center gap-3">
+                                    <h1 class="text-2xl">Users</h1>
+                                    if session.Role == 2 {
+                                        <input hx-select="#dashboard-data" hx-push-url="true" hx-get="/panel/users/new" hx-swap="outerHTML" hx-target="#dashboard-data"
+                                                                                 type="button" value="Add New User" class="bg-white text-blue-600 rounded hover:bg-gray-100 cursor-pointer  border-blue-600 border text-sm px-3 py-[0.3rem]" />
+                                    }
+                    </span>
+                    <p class="text-sm mb-3">All users registered in the system.</p>
+                    </div>
+                if q != "" {
+                    <p class="text-sm">Search results for: <span class="font-semibold">{ q }</span></p>
+                }
               </div>
-              <div class="flex flex-row gap-4">
-                <input aria-label="search" class="border border-gray-500 rounded px-2 text-sm" type="text" name="search_bar" />
-                <input class="bg-white text-blue-600 rounded  border-blue-600 border text-sm px-3 py-[0.3rem] hover:bg-gray-100 cursor-pointer" type="button" value="Search Users" />
-              </div>
+
+              <form class="flex flex-row gap-4" method="get">
+                <input aria-label="search" class="border border-gray-500 rounded px-2 text-sm" type="text" name="q" />
+                <input  class="bg-white text-blue-600 rounded  border-blue-600 border text-sm px-3 py-[0.3rem] hover:bg-gray-100 cursor-pointer" type="submit" value="Search Users" />
+              </form>
             </div>
             <p class="text-xs text-gray-900 text-right">{ fmt.Sprintf("%d", users_count) } items</p>
             <table class="my-3 w-full border border-gray-300 text-sm">
@@ -44,10 +50,10 @@ templ ShowUsers(users []common.User, users_count int) {
               </tr>
               for _, user := range users {
                 <tr class="even:bg-[#F6F7F7] odd:bg-white border-b border-[#C4C5C7]">
-                    <td class="p-2">{user.Id}</td>
-                    <td class="p-2">{user.Username}</td>
-                    <td class="p-2">{user.Email}</td>
-                    <td class="p-2">{ common.TranslateRole(user.Role) }</td>
+                    <td class="p-2 pb-[2rem]">{user.Id}</td>
+                    <td class="p-2 pb-[2rem]">{user.Username}</td>
+                    <td class="p-2 pb-[2rem]">{user.Email}</td>
+                    <td class="p-2 pb-[2rem]">{ common.TranslateRole(user.Role) }</td>
                 </tr>
               }
             </table>

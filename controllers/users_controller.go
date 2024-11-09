@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"database/sql"
 	"github.com/DipsDev/mason/common"
 	"github.com/DipsDev/mason/templates/pages"
 	"golang.org/x/crypto/bcrypt"
@@ -90,23 +91,41 @@ func CreateUsers(w http.ResponseWriter, r *http.Request) {
 }
 
 func ShowUsers(w http.ResponseWriter, r *http.Request) {
-	stmtOut, err := common.DB.Prepare("SELECT id, email, username, role FROM users")
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
 
-	rows, err := stmtOut.Query()
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		return
+	q := r.URL.Query().Get("q")
+	var rows *sql.Rows
+	if q != "" {
+		stmtOut, err := common.DB.Prepare("SELECT id, email, username, role FROM users where username LIKE ?")
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+
+		rows, err = stmtOut.Query("%" + q + "%")
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+
+	} else {
+		stmtOut, err := common.DB.Prepare("SELECT id, email, username, role FROM users")
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+
+		rows, err = stmtOut.Query()
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
 	}
 
 	users := make([]common.User, 0)
 
 	for rows.Next() {
 		var cur common.User
-		err = rows.Scan(&cur.Id, &cur.Email, &cur.Username, &cur.Role)
+		err := rows.Scan(&cur.Id, &cur.Email, &cur.Username, &cur.Role)
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			return
@@ -114,5 +133,5 @@ func ShowUsers(w http.ResponseWriter, r *http.Request) {
 
 		users = append(users, cur)
 	}
-	pages.ShowUsers(users, len(users)).Render(r.Context(), w)
+	pages.ShowUsers(users, len(users), q).Render(r.Context(), w)
 }
