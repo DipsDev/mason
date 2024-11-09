@@ -3,6 +3,7 @@ package common
 import (
 	"crypto/rand"
 	"encoding/hex"
+	"fmt"
 	"golang.org/x/net/context"
 	"net/http"
 	"sync"
@@ -15,6 +16,7 @@ type Session struct {
 	UserId    string
 	Email     string
 	Username  string
+	Role      userRole
 	Expiry    time.Time
 	// add more as project grows
 }
@@ -48,6 +50,7 @@ func (sp *SessionProvider) CreateSession(user *User) *Session {
 		Id:        id,
 		Username:  user.Username,
 		Email:     user.Email,
+		Role:      user.Role,
 		UserId:    user.Id,
 	}
 
@@ -114,6 +117,7 @@ func WithAuth(next func(http.ResponseWriter, *http.Request)) http.Handler {
 // it returns the current user session, and whether the user is authenticated or not.
 func GetSession(ctx context.Context) (*Session, bool) {
 	if sess, ok := ctx.Value(contextClass).(*Session); ok {
+		fmt.Println(sess.Role)
 		return sess, true
 	}
 	return nil, false

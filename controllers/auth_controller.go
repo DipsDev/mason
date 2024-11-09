@@ -62,15 +62,15 @@ func CreateLogin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	stmtOut, err := common.DB.Prepare("SELECT password, id, email, username FROM users WHERE email = ? OR username = ?")
+	stmtOut, err := common.DB.Prepare("SELECT password, id, email, username, role FROM users WHERE email = ? OR username = ?")
 	defer stmtOut.Close()
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 	var passwordSQL []byte
-	var idSQL, emailSQL, usernameSQL string
-	err = stmtOut.QueryRow(email, email).Scan(&passwordSQL, &idSQL, &emailSQL, &usernameSQL)
+	var sqlUser common.User
+	err = stmtOut.QueryRow(email, email).Scan(&passwordSQL, &sqlUser.Id, &sqlUser.Email, &sqlUser.Username, &sqlUser.Role)
 	if err != nil {
 		pages.Login(r.Form.Get("csrf-token"), "Incorrect username or password").Render(r.Context(), w)
 		return
@@ -83,7 +83,7 @@ func CreateLogin(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// create a session cookie
-	sess := common.SessionStore.CreateSession(&common.User{Id: idSQL, Email: email, Username: usernameSQL})
+	sess := common.SessionStore.CreateSession(&sqlUser)
 	cookie := createCookie(common.SessionName, sess.Id)
 	cookie.Path = "/"
 	http.SetCookie(w, cookie)
