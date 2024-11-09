@@ -34,7 +34,7 @@ func CreateUsers(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if r.Method == "" || r.Method == "GET" {
-		pages.CreateUsers().Render(r.Context(), w)
+		pages.CreateUsers("").Render(r.Context(), w)
 		return
 	}
 
@@ -59,7 +59,7 @@ func CreateUsers(w http.ResponseWriter, r *http.Request) {
 
 	if strings.TrimSpace(formData.username) == "" || strings.TrimSpace(formData.password) == "" ||
 		strings.TrimSpace(formData.email) == "" || strings.TrimSpace(formData.roleCode) == "" {
-		w.WriteHeader(http.StatusBadRequest)
+		pages.CreateUsers("One of the given values is empty.").Render(r.Context(), w)
 		return
 	}
 	role, err := strconv.Atoi(formData.roleCode)
@@ -74,20 +74,20 @@ func CreateUsers(w http.ResponseWriter, r *http.Request) {
 
 	stmtOut, err := common.DB.Prepare("INSERT INTO users (username, email, password, role) VALUES (?, ?, ?, ?)")
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
+		pages.CreateUsers("There was an error trying to execute.").Render(r.Context(), w)
 		return
 	}
 	defer stmtOut.Close()
 
 	hashedPass, err := bcrypt.GenerateFromPassword([]byte(formData.password), bcrypt.DefaultCost)
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
+		pages.CreateUsers("There was an error trying to execute.").Render(r.Context(), w)
 		return
 	}
 
 	_, err = stmtOut.Exec(formData.username, formData.email, hashedPass, role)
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
+		pages.CreateUsers("There was an error trying to execute.").Render(r.Context(), w)
 		return
 	}
 	http.Redirect(w, r, "/panel/users", http.StatusFound)
@@ -224,14 +224,14 @@ func EditUsers(w http.ResponseWriter, r *http.Request) {
 
 	stmtOut, err := common.DB.Prepare("UPDATE users SET username = ?, role = ? WHERE id = ?")
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
+		pages.EditUsers(&common.User{Id: userId, Username: newUsername}, "There was a error trying to execute the command. make sure the username is unique.").Render(r.Context(), w)
 		return
 	}
 	defer stmtOut.Close()
 
 	_, err = stmtOut.Exec(newUsername, newRole, userId)
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
+		pages.EditUsers(&common.User{Id: userId, Username: newUsername}, "There was a error trying to execute the command. make sure the username is unique.").Render(r.Context(), w)
 		return
 	}
 
