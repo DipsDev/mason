@@ -30,7 +30,10 @@ func (s *Session) Expired() bool {
 }
 
 var SessionStore = &SessionProvider{sessions: make(map[string]*Session)}
-var SessionName = "__MASONSESSION"
+
+const SessionName = "MAID"
+
+const SessionTimout = 7 * time.Minute
 
 func generateId() string {
 	b := make([]byte, 16)
@@ -44,7 +47,7 @@ func (sp *SessionProvider) CreateSession(user *User) *Session {
 	id := generateId()
 
 	sess := &Session{
-		Expiry:    time.Now().Add(7 * time.Minute),
+		Expiry:    time.Now().Add(SessionTimout),
 		CsrfToken: generateId(),
 		Id:        id,
 		Username:  user.Username,
@@ -64,7 +67,7 @@ func (sp *SessionProvider) CopySession(sess *Session) *Session {
 	newId := generateId()
 
 	newSess := &Session{
-		Expiry:    time.Now().Add(7 * time.Minute),
+		Expiry:    time.Now().Add(SessionTimout),
 		CsrfToken: sess.CsrfToken,
 		Id:        newId,
 		Username:  sess.Username,
@@ -121,8 +124,8 @@ func WithAuth(next func(http.ResponseWriter, *http.Request)) http.Handler {
 
 		// If not session, then redirect to login
 		if sess == nil || sess.Expired() {
-
-			http.Redirect(w, r, "/login", http.StatusFound)
+			w.Header().Set("HX-Redirect", "/login")
+			// http.Redirect(w, r, "/login", http.StatusFound)
 			return
 		}
 

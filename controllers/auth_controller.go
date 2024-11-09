@@ -28,7 +28,7 @@ func validateCsrf(val string, r *http.Request) bool {
 }
 
 func createCookie(name string, value string) *http.Cookie {
-	expiration := time.Now().Add(7 * time.Minute)
+	expiration := time.Now().Add(common.SessionTimout)
 	ck := http.Cookie{Name: name, Value: value, Expires: expiration, SameSite: http.SameSiteLaxMode, Path: "/", HttpOnly: true} // add secure in prod
 	return &ck
 }
