@@ -28,8 +28,8 @@ func validateCsrf(val string, r *http.Request) bool {
 }
 
 func createCookie(name string, value string) *http.Cookie {
-	expiration := time.Now().Add(12 * time.Minute)
-	ck := http.Cookie{Name: name, Value: value, Expires: expiration, SameSite: http.SameSiteLaxMode} // add samesite, secure and httpOnly in prod
+	expiration := time.Now().Add(7 * time.Minute)
+	ck := http.Cookie{Name: name, Value: value, Expires: expiration, SameSite: http.SameSiteLaxMode, Path: "/", HttpOnly: true} // add secure in prod
 	return &ck
 }
 
@@ -85,7 +85,6 @@ func CreateLogin(w http.ResponseWriter, r *http.Request) {
 	// create a session cookie
 	sess := common.SessionStore.CreateSession(&sqlUser)
 	cookie := createCookie(common.SessionName, sess.Id)
-	cookie.Path = "/"
 	http.SetCookie(w, cookie)
 
 	// Redirect user to dashboard

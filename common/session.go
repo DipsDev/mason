@@ -3,7 +3,6 @@ package common
 import (
 	"crypto/rand"
 	"encoding/hex"
-	"fmt"
 	"golang.org/x/net/context"
 	"net/http"
 	"sync"
@@ -34,7 +33,7 @@ var SessionStore = &SessionProvider{sessions: make(map[string]*Session)}
 var SessionName = "__MASONSESSION"
 
 func generateId() string {
-	b := make([]byte, 33)
+	b := make([]byte, 16)
 	if _, err := rand.Read(b); err != nil {
 		panic(err)
 	}
@@ -45,7 +44,7 @@ func (sp *SessionProvider) CreateSession(user *User) *Session {
 	id := generateId()
 
 	sess := &Session{
-		Expiry:    time.Now().Add(4 * 24 * time.Hour),
+		Expiry:    time.Now().Add(7 * time.Minute),
 		CsrfToken: generateId(),
 		Id:        id,
 		Username:  user.Username,
@@ -59,7 +58,25 @@ func (sp *SessionProvider) CreateSession(user *User) *Session {
 	sp.lock.Unlock()
 
 	return sess
+}
 
+func (sp *SessionProvider) CopySession(sess *Session) *Session {
+	newId := generateId()
+
+	newSess := &Session{
+		Expiry:    time.Now().Add(7 * time.Minute),
+		CsrfToken: sess.CsrfToken,
+		Id:        newId,
+		Username:  sess.Username,
+		Email:     sess.Email,
+		Role:      sess.Role,
+		UserId:    sess.UserId,
+	}
+
+	sp.lock.Lock()
+	sp.sessions[newId] = newSess
+	sp.lock.Unlock()
+	return newSess
 }
 
 func (sp *SessionProvider) DeleteSession(token string) {
@@ -68,8 +85,8 @@ func (sp *SessionProvider) DeleteSession(token string) {
 	sp.lock.Unlock()
 }
 
-// GetSession returns the found session in the http request, or nil of doesn't exist
-func (sp *SessionProvider) GetSession(r *http.Request) *Session {
+// GetServerSession returns the session stored in the server, returns nil if not found.
+func (sp *SessionProvider) GetServerSession(r *http.Request) *Session {
 	cookie, err := r.Cookie(SessionName)
 	if err != nil {
 		return nil
@@ -78,6 +95,7 @@ func (sp *SessionProvider) GetSession(r *http.Request) *Session {
 	sp.lock.RLock()
 	sess := sp.sessions[cookie.Value]
 	sp.lock.RUnlock()
+
 	return sess
 }
 
@@ -89,7 +107,7 @@ var contextClass = contextKey("session")
 // it allows usage of GetSession inside the required templates.
 func WithSession(next func(http.ResponseWriter, *http.Request)) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		ctx := context.WithValue(r.Context(), contextClass, SessionStore.GetSession(r))
+		ctx := context.WithValue(r.Context(), contextClass, SessionStore.GetServerSession(r))
 		next(w, r.WithContext(ctx))
 	})
 }
@@ -99,16 +117,27 @@ func WithSession(next func(http.ResponseWriter, *http.Request)) http.Handler {
 // it allows usage of GetSession inside the required templates.
 func WithAuth(next func(http.ResponseWriter, *http.Request)) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		sess := SessionStore.GetSession(r)
+		sess := SessionStore.GetServerSession(r)
 
 		// If not session, then redirect to login
-		if sess == nil {
+		if sess == nil || sess.Expired() {
+
 			http.Redirect(w, r, "/login", http.StatusFound)
 			return
 		}
 
-		ctx := context.WithValue(r.Context(), contextClass, sess)
+		// Refresh session
+		newSess := SessionStore.CopySession(sess)
+
+		ck := &http.Cookie{Name: SessionName, Value: newSess.Id, Path: "/", Expires: newSess.Expiry, SameSite: http.SameSiteLaxMode, HttpOnly: true}
+		http.SetCookie(w, ck)
+
+		// Delete old session
+		SessionStore.DeleteSession(sess.Id)
+
+		ctx := context.WithValue(r.Context(), contextClass, newSess)
 		next(w, r.WithContext(ctx))
+
 	})
 }
 
@@ -117,7 +146,6 @@ func WithAuth(next func(http.ResponseWriter, *http.Request)) http.Handler {
 // it returns the current user session, and whether the user is authenticated or not.
 func GetSession(ctx context.Context) (*Session, bool) {
 	if sess, ok := ctx.Value(contextClass).(*Session); ok {
-		fmt.Println(sess.Role)
 		return sess, true
 	}
 	return nil, false
