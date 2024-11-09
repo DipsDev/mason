@@ -43,7 +43,7 @@ func (sp *SessionProvider) CreateSession(user *User) *Session {
 	id := generateId()
 
 	sess := &Session{
-		Expiry:    time.Now().Add(12 * time.Minute),
+		Expiry:    time.Now().Add(4 * 24 * time.Hour),
 		CsrfToken: generateId(),
 		Id:        id,
 		Username:  user.Username,
@@ -103,14 +103,7 @@ func WithAuth(next func(http.ResponseWriter, *http.Request)) http.Handler {
 			http.Redirect(w, r, "/login", http.StatusFound)
 			return
 		}
-		// If the session expired, generate a new session
-		if sess.Expired() {
-			newSess := SessionStore.CreateSession(&User{Id: sess.UserId, Username: sess.Username, Email: sess.Email})
-			expiration := time.Now().Add(12 * time.Minute)
-			ck := http.Cookie{Name: SessionName, Value: newSess.Id, Expires: expiration}
-			ck.Path = "/"
-			http.SetCookie(w, &ck)
-		}
+
 		ctx := context.WithValue(r.Context(), contextClass, sess)
 		next(w, r.WithContext(ctx))
 	})
