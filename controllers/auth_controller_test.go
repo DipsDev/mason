@@ -33,8 +33,8 @@ func TestLogin_Should_Fail_When_Empty_Credentials(t *testing.T) {
 
 	csrf(req)
 	result := createLogin(w, req)
-	if result.StatusCode != http.StatusBadRequest {
-		t.Errorf("Expected status code %d, got %d", http.StatusBadRequest, result.StatusCode)
+	if result.statusCode != http.StatusBadRequest {
+		t.Errorf("Expected status code %d, got %d", http.StatusBadRequest, result.statusCode)
 	}
 
 }
@@ -47,8 +47,8 @@ func TestLogin_Should_Fail_When_Csrf_Invalid(t *testing.T) {
 	w := httptest.NewRecorder()
 
 	result := createLogin(w, req)
-	if result.StatusCode != http.StatusBadRequest {
-		t.Errorf("Expected status code %d, got %d", http.StatusBadRequest, result.StatusCode)
+	if result.statusCode != http.StatusBadRequest {
+		t.Errorf("Expected status code %d, got %d", http.StatusBadRequest, result.statusCode)
 	}
 }
 
@@ -61,7 +61,7 @@ func TestLogin_Should_Fail_When_Credentials_Are_Invalid(t *testing.T) {
 
 	csrf(req)
 	result := createLogin(w, req)
-	if result.StatusCode != http.StatusUnauthorized {
-		t.Errorf("Expected status code %d, got %d. %s", http.StatusUnauthorized, result.StatusCode, result.ErrorMessage)
+	if result.statusCode != http.StatusUnauthorized {
+		t.Errorf("Expected status code %d, got %d. %s", http.StatusUnauthorized, result.statusCode, result.errorMessage)
 	}
 }

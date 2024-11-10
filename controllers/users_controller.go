@@ -126,50 +126,81 @@ func DeleteUsers(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/panel/users", http.StatusFound)
 }
 
+type showUsersViewModel struct {
+	users   []common.User
+	numRows int
+	query   string
+
+	errorMessage string
+	statusCode   int
+}
+
 func ShowUsers(w http.ResponseWriter, r *http.Request) {
+	result := showUsers(w, r)
+	pages.ShowUsers(result.users, result.numRows, result.query, result.errorMessage).Render(r.Context(), w)
+
+}
+
+func showUsers(w http.ResponseWriter, r *http.Request) showUsersViewModel {
 
 	q := r.URL.Query().Get("q")
 	var rows *sql.Rows
+	var err error
 	if q != "" {
-		stmtOut, err := common.DB.Prepare("SELECT id, email, username, role FROM users where username LIKE ?")
+		rows, err = common.DB.Query("SELECT id, email, username, role, COUNT(*) FROM users where username LIKE ?", "%"+q+"%")
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
-			return
-		}
+			return showUsersViewModel{
+				users:   []common.User{},
+				numRows: 0,
+				query:   q,
 
-		rows, err = stmtOut.Query("%" + q + "%")
-		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
-			return
+				errorMessage: "An unexpected error occurred.",
+				statusCode:   http.StatusInternalServerError,
+			}
 		}
 
 	} else {
-		stmtOut, err := common.DB.Prepare("SELECT id, email, username, role FROM users")
+		rows, err = common.DB.Query("SELECT id, email, username, role FROM users")
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
-			return
-		}
+			return showUsersViewModel{
+				users:   []common.User{},
+				numRows: 0,
+				query:   q,
 
-		rows, err = stmtOut.Query()
-		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
-			return
+				errorMessage: "An unexpected error occurred.",
+				statusCode:   http.StatusInternalServerError,
+			}
 		}
 	}
+	defer rows.Close()
 
 	users := make([]common.User, 0)
 
 	for rows.Next() {
 		var cur common.User
-		err := rows.Scan(&cur.Id, &cur.Email, &cur.Username, &cur.Role)
-		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
-			return
+		if err := rows.Scan(&cur.Id, &cur.Email, &cur.Username, &cur.Role); err != nil {
+			return showUsersViewModel{
+				users:   []common.User{},
+				numRows: 0,
+				query:   q,
+
+				errorMessage: "An unexpected error occurred.",
+				statusCode:   http.StatusInternalServerError,
+			}
 		}
 
 		users = append(users, cur)
 	}
-	pages.ShowUsers(users, len(users), q).Render(r.Context(), w)
+	return showUsersViewModel{
+		users:   users,
+		numRows: len(users),
+		query:   q,
+
+		errorMessage: "",
+		statusCode:   http.StatusOK,
+	}
 }
 
 func EditUsers(w http.ResponseWriter, r *http.Request) {

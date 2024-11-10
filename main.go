@@ -3,6 +3,7 @@ package main
 import (
 	"github.com/DipsDev/mason/common"
 	"github.com/DipsDev/mason/controllers"
+	"github.com/go-sql-driver/mysql"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/joho/godotenv"
 	"log"
@@ -17,7 +18,15 @@ func main() {
 		return
 	}
 
-	common.InitDatabase(os.Getenv("MASON_DATABASE_DSN"))
+	cfg := mysql.Config{
+		User:   os.Getenv("DBUSER"),
+		Passwd: os.Getenv("DBPASS"),
+		Addr:   "127.0.0:3306",
+		Net:    "tcp",
+		DBName: "mason",
+	}
+
+	common.InitDatabase(cfg.FormatDSN())
 	defer common.CloseDatabase()
 
 	router := http.NewServeMux()

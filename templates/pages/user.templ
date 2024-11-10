@@ -19,7 +19,7 @@ templ quickInput(name string, inpType string, disabled bool, defaultValue string
 
 }
 
-templ ShowUsers(users []common.User, users_count int, q string) {
+templ ShowUsers(users []common.User, users_count int, q string, errorMessage string) {
         {{ session, _ := common.GetSession(ctx) }}
         {{ user_items := fmt.Sprintf("%d items", users_count) }}
         @components.Panel("Users") {
@@ -35,6 +35,7 @@ templ ShowUsers(users []common.User, users_count int, q string) {
                                     }
                     </span>
                     <p class="text-sm mb-3">All users registered in the system.</p>
+                    <p class="text-red-600 text-sm">{ errorMessage }</p>
                     </div>
                     if q != "" {
                         <p class="text-sm">Search results for: <span class="font-semibold">{ q }</span></p>
