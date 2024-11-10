@@ -21,7 +21,7 @@ func main() {
 	cfg := mysql.Config{
 		User:   os.Getenv("DBUSER"),
 		Passwd: os.Getenv("DBPASS"),
-		Addr:   "127.0.0:3306",
+		Addr:   ":3306",
 		Net:    "tcp",
 		DBName: "mason",
 	}

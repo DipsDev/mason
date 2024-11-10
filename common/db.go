@@ -16,7 +16,7 @@ func InitDatabase(dsn string) {
 	}
 	err = DB.Ping()
 	if err != nil {
-		log.Fatal("[Mason] Couldn't connect to database. is it on?")
+		log.Fatalf("[Mason] Couldn't connect to database. is it on?\n %d", err.Error())
 		return
 	}
 }
