@@ -16,27 +16,52 @@ func csrf(req *http.Request) {
 	})
 }
 
-func form() url.Values {
+func form(email string, password string) url.Values {
 	f := url.Values{}
 	f.Add("csrf-token", "THIS_IS_A_TEST")
+	f.Add("email", email)
+	f.Add("password", password)
 	return f
 }
 
 func TestLogin_Should_Fail_When_Empty_Credentials(t *testing.T) {
-	loginForm := form()
-	loginForm.Add("username", "")
-	loginForm.Add("password", "")
+	loginForm := form("", "")
 
 	req := httptest.NewRequest("POST", "/login", strings.NewReader(loginForm.Encode()))
-	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	w := httptest.NewRecorder()
 
 	csrf(req)
-	CreateLogin(w, req)
+	result := createLogin(w, req)
+	if result.StatusCode != http.StatusBadRequest {
+		t.Errorf("Expected status code %d, got %d", http.StatusBadRequest, result.StatusCode)
+	}
 
-	resp := w.Result()
+}
 
-	if resp.StatusCode != http.StatusBadRequest {
-		t.Errorf("Login should return a 400 status code, got %s", resp.Status)
+func TestLogin_Should_Fail_When_Csrf_Invalid(t *testing.T) {
+	loginForm := form("test", "test")
+
+	req := httptest.NewRequest("POST", "/login", strings.NewReader(loginForm.Encode()))
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	w := httptest.NewRecorder()
+
+	result := createLogin(w, req)
+	if result.StatusCode != http.StatusBadRequest {
+		t.Errorf("Expected status code %d, got %d", http.StatusBadRequest, result.StatusCode)
+	}
+}
+
+func TestLogin_Should_Fail_When_Credentials_Are_Invalid(t *testing.T) {
+	loginForm := form("test", "test")
+
+	req := httptest.NewRequest("POST", "/login", strings.NewReader(loginForm.Encode()))
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	w := httptest.NewRecorder()
+
+	csrf(req)
+	result := createLogin(w, req)
+	if result.StatusCode != http.StatusUnauthorized {
+		t.Errorf("Expected status code %d, got %d. %s", http.StatusUnauthorized, result.StatusCode, result.ErrorMessage)
 	}
 }
