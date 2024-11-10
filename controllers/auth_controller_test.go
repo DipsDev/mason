@@ -1,12 +1,19 @@
 package controllers
 
 import (
+	"github.com/DipsDev/mason/common"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
 	"strings"
 	"testing"
 )
+
+func TestMain(m *testing.M) {
+	common.InitDatabase("root:root@/mason")
+	m.Run()
+	common.CloseDatabase()
+}
 
 func csrf(req *http.Request) {
 	const csrfTok = "THIS_IS_A_TEST"
