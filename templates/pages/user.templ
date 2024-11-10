@@ -54,6 +54,7 @@ templ ShowUsers(users []common.User, users_count int, q string, errorMessage str
                 <th class="p-2 text-left font-normal">Username</th>
                 <th class="p-2 text-left font-normal">Email</th>
                 <th class="p-2 text-left font-normal">Role</th>
+                <th class="p-2 text-left font-normal"></th>
               </tr>
               for _, user := range users {
                 <tr class="even:bg-[#F6F7F7] odd:bg-white border-b border-[#C4C5C7] group">
@@ -66,6 +67,8 @@ templ ShowUsers(users []common.User, users_count int, q string, errorMessage str
                         <button hx-select="#dashboard-data" hx-push-url="true" hx-get={ string(templ.URL(fmt.Sprintf("/panel/users/%s", user.Id))) } hx-swap="outerHTML" hx-target="#dashboard-data"
                                 class="text-transparent group-hover:text-blue-600 hover:underline ">Edit</button>
                         </td>
+                    } else {
+                        <td class="p-2 pb-[2rem]"></td>
                     }
                 </tr>
               }

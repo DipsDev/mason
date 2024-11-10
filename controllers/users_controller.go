@@ -10,6 +10,14 @@ import (
 	"strings"
 )
 
+func smartRedirect(w http.ResponseWriter, r *http.Request, path string) {
+	if r.Header.Get("HX-Request") != "" {
+		w.Header().Set("HX-Redirect", path)
+		return
+	}
+	http.Redirect(w, r, path, http.StatusFound)
+}
+
 type createFormData struct {
 	username  string
 	email     string
@@ -18,30 +26,40 @@ type createFormData struct {
 	csrfToken string
 }
 
+type createViewModel struct {
+	errorMessage string
+	statusCode   int
+}
+
 func CreateUsers(w http.ResponseWriter, r *http.Request) {
+	result := createUsers(w, r)
+	if result.statusCode == http.StatusCreated {
+		smartRedirect(w, r, "/panel/users")
+		return
+	}
+	pages.CreateUsers(result.errorMessage).Render(r.Context(), w)
+}
+
+func createUsers(w http.ResponseWriter, r *http.Request) createViewModel {
 	session, ok := common.GetSession(r.Context())
 
 	if !ok {
-		http.Redirect(w, r, "/login", http.StatusFound)
-		return
+		return createViewModel{errorMessage: "Invalid session.", statusCode: http.StatusUnauthorized}
 	}
 
 	user := common.GetSessionUser(r.Context())
 
 	if user == nil || user.Role != common.Administrator {
-		http.Redirect(w, r, "/panel", http.StatusFound)
-		return
+		return createViewModel{errorMessage: "Invalid permissions.", statusCode: http.StatusUnauthorized}
 	}
 
 	if r.Method == "" || r.Method == "GET" {
-		pages.CreateUsers("").Render(r.Context(), w)
-		return
+		return createViewModel{errorMessage: "", statusCode: http.StatusOK}
 	}
 
 	formData := createFormData{}
 	if err := r.ParseForm(); err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		return
+		return createViewModel{errorMessage: "Invalid form data.", statusCode: http.StatusBadRequest}
 	}
 
 	// load form data
@@ -53,44 +71,37 @@ func CreateUsers(w http.ResponseWriter, r *http.Request) {
 
 	// validate csrf
 	if formData.csrfToken != session.CsrfToken {
-		w.WriteHeader(http.StatusBadRequest)
-		return
+		return createViewModel{errorMessage: "Invalid form data", statusCode: http.StatusBadRequest}
 	}
 
 	if strings.TrimSpace(formData.username) == "" || strings.TrimSpace(formData.password) == "" ||
 		strings.TrimSpace(formData.email) == "" || strings.TrimSpace(formData.roleCode) == "" {
-		pages.CreateUsers("One of the given values is empty.").Render(r.Context(), w)
-		return
+		return createViewModel{errorMessage: "Invalid values were entered.", statusCode: http.StatusBadRequest}
 	}
 	role, err := strconv.Atoi(formData.roleCode)
 	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		return
+		return createViewModel{errorMessage: "Invalid values were entered.", statusCode: http.StatusBadRequest}
 	}
 	if role >= int(common.END) || role < 0 {
-		w.WriteHeader(http.StatusBadRequest)
-		return
+		return createViewModel{errorMessage: "Invalid values were entered.", statusCode: http.StatusBadRequest}
 	}
 
 	stmtOut, err := common.DB.Prepare("INSERT INTO users (username, email, password, role) VALUES (?, ?, ?, ?)")
 	if err != nil {
-		pages.CreateUsers("There was an error trying to execute.").Render(r.Context(), w)
-		return
+		return createViewModel{errorMessage: "An unexpected error occurred.", statusCode: http.StatusInternalServerError}
 	}
 	defer stmtOut.Close()
 
 	hashedPass, err := bcrypt.GenerateFromPassword([]byte(formData.password), bcrypt.DefaultCost)
 	if err != nil {
-		pages.CreateUsers("There was an error trying to execute.").Render(r.Context(), w)
-		return
+		return createViewModel{errorMessage: "An unexpected error occurred.", statusCode: http.StatusInternalServerError}
 	}
 
 	_, err = stmtOut.Exec(formData.username, formData.email, hashedPass, role)
 	if err != nil {
-		pages.CreateUsers("There was an error trying to execute.").Render(r.Context(), w)
-		return
+		return createViewModel{errorMessage: "An unexpected error occurred.", statusCode: http.StatusInternalServerError}
 	}
-	http.Redirect(w, r, "/panel/users", http.StatusFound)
+	return createViewModel{errorMessage: "", statusCode: http.StatusCreated}
 }
 
 func DeleteUsers(w http.ResponseWriter, r *http.Request) {
@@ -126,7 +137,7 @@ func DeleteUsers(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/panel/users", http.StatusFound)
 }
 
-type showUsersViewModel struct {
+type showViewModel struct {
 	users   []common.User
 	numRows int
 	query   string
@@ -141,7 +152,7 @@ func ShowUsers(w http.ResponseWriter, r *http.Request) {
 
 }
 
-func showUsers(w http.ResponseWriter, r *http.Request) showUsersViewModel {
+func showUsers(w http.ResponseWriter, r *http.Request) showViewModel {
 
 	q := r.URL.Query().Get("q")
 	var rows *sql.Rows
@@ -150,7 +161,7 @@ func showUsers(w http.ResponseWriter, r *http.Request) showUsersViewModel {
 		rows, err = common.DB.Query("SELECT id, email, username, role, COUNT(*) FROM users where username LIKE ?", "%"+q+"%")
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
-			return showUsersViewModel{
+			return showViewModel{
 				users:   []common.User{},
 				numRows: 0,
 				query:   q,
@@ -164,7 +175,7 @@ func showUsers(w http.ResponseWriter, r *http.Request) showUsersViewModel {
 		rows, err = common.DB.Query("SELECT id, email, username, role FROM users")
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
-			return showUsersViewModel{
+			return showViewModel{
 				users:   []common.User{},
 				numRows: 0,
 				query:   q,
@@ -181,7 +192,7 @@ func showUsers(w http.ResponseWriter, r *http.Request) showUsersViewModel {
 	for rows.Next() {
 		var cur common.User
 		if err := rows.Scan(&cur.Id, &cur.Email, &cur.Username, &cur.Role); err != nil {
-			return showUsersViewModel{
+			return showViewModel{
 				users:   []common.User{},
 				numRows: 0,
 				query:   q,
@@ -193,7 +204,7 @@ func showUsers(w http.ResponseWriter, r *http.Request) showUsersViewModel {
 
 		users = append(users, cur)
 	}
-	return showUsersViewModel{
+	return showViewModel{
 		users:   users,
 		numRows: len(users),
 		query:   q,
